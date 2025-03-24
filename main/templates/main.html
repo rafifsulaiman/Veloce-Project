@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Utama</title>
+</head>
+<body>
+    <h1>Halaman Utama</h1>
+
+    {% if user %}
+        <h3>Data User Terbaru:</h3>
+        <p>Username: {{ user.username }}</p>
+        <p>Birth Date: {{ user.birth_date }}</p>
+        <p>Phone: {{ user.phone }}</p>
+        <p>Email: {{ user.email }}</p>
+    {% else %}
+        <p>Belum ada user yang terdaftar.</p>
+    {% endif %}
+    
+    <a href="{% url 'register' %}">Daftar User Baru</a>
+</body>
+</html>
