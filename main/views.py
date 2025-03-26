@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Product
 from django.http import JsonResponse
 import json
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 def show_main(request):
@@ -132,36 +133,46 @@ def add_product(request):
     return render(request, 'add_product.html', {'form': form})
 
 @login_required
+@csrf_exempt
 def edit_product(request, product_id):
+    print(f"Received request method: {request.method}")  # Debugging
+    print(f"Received request body: {request.body}")  # Debugging
+
     if not request.user.is_admin:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('main:product_catalog')
-    print(f"Fetching product with product_id: {product_id}")
+
     product = get_object_or_404(Product, product_id=product_id)
 
-    if request.method == 'GET':  # Tambahkan ini untuk menangani GET request
-        return JsonResponse({  
-            'name': product.name,
-            'price': product.price,
-            'size': product.size,
-            'image_url': product.image_url,
-        })
-
-    elif request.method == 'POST':
+    if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            print(f"Parsed data: {data}")  # Debugging
+            
             product.name = data.get('name', product.name)
             product.price = data.get('price', product.price)
             product.size = data.get('size', product.size)
             product.image_url = data.get('image_url', product.image_url)
 
-            product.save(update_fields=['name', 'price', 'size', 'image_url'])
+            product.save()
             return JsonResponse({'message': "Produk berhasil diubah."})
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': "Method Not Allowed"}, status=405)
+
+@login_required
+def get_product(request, product_id):
+    product = get_object_or_404(Product, product_id=product_id)
+
+    return JsonResponse({
+        'name': product.name,
+        'price': product.price,
+        'size': product.size,
+        'image_url': product.image_url,
+    })
+
 
 def get_product_data(request):
     products = Product.objects.all()  # Ambil semua produk
