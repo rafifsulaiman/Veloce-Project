@@ -1,1 +1,1 @@
-ini push peratma kali
+ini push peratma kalii
