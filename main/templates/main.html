@@ -8,16 +8,21 @@
 <body>
     <h1>Halaman Utama</h1>
 
-    {% if user %}
+    {% if user.is_authenticated %}
         <h3>Data User Terbaru:</h3>
         <p>Username: {{ user.username }}</p>
-        <p>Birth Date: {{ user.birth_date }}</p>
-        <p>Phone: {{ user.phone }}</p>
+        <p>Nama: {{ user.first_name }} {{ user.last_name }}</p>
         <p>Email: {{ user.email }}</p>
+        <p>Lokasi: {{ user.location }}</p>
+        <p>Status: {% if user.is_admin %}Admin{% else %}User Regular{% endif %}</p>
+        <a href="{% url 'main:register' %}">Daftar User Baru</a>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
     {% else %}
-        <p>Belum ada user yang terdaftar.</p>
+        <p>Silakan login atau daftar untuk melanjutkan.</p>
+        <a href="{% url 'main:register' %}">Daftar</a>
     {% endif %}
-    
-    <a href="{% url 'register' %}">Daftar User Baru</a>
 </body>
 </html>

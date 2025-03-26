@@ -6,7 +6,7 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-ARG PYTHON_VERSION=3.13.1
+ARG PYTHON_VERSION=3.12.7
 FROM python:${PYTHON_VERSION}-slim as base
 
 # Prevents Python from writing pyc files.
@@ -48,4 +48,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD gunicorn 'env.lib.python3.12.site-packages.asgiref.wsgi' --bind=0.0.0.0:8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "veloce.wsgi:application"]
