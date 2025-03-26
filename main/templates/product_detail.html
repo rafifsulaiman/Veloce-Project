@@ -177,7 +177,7 @@
             <div class="product-info">
                 <div class="product-brand">{{ product.brand }}</div>
                 <h1 class="product-title">{{ product.name }}</h1>
-                <div class="product-price">Rp {{ product.price|stringformat:"i"|slice:"-3" }}.{{ product.price|stringformat:"i"|slice:"-3:" }}</div>
+                <div class="product-price">$ {{ product.price|stringformat:"i"|slice:"-3" }}.{{ product.price|stringformat:"i"|slice:"-3:" }}</div>
                 <div class="product-id">Product ID: {{ product.product_id }}</div>
                 <div class="product-size">
                     <span>Ukuran: </span>
