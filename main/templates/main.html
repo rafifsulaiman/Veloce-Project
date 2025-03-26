@@ -56,6 +56,9 @@
         <a href="{% url 'main:register' %}" class="btn">Daftar User Baru</a>
         <a href="{% url 'main:product_catalog' %}" class="btn">Katalog Produk</a>
         <a href="{% url 'main:logout' %}" class="btn btn-danger">Logout</a>
+        {% if user.is_admin %}
+            <a href="{% url 'main:admin_page' %}" class="btn">Admin Page</a>
+        {% endif %}
     {% else %}
         <p>Silakan login atau daftar untuk melanjutkan.</p>
         <a href="{% url 'main:login' %}" class="btn">Login</a>

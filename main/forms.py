@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import CustomUser
+from .models import CustomUser, Product
 from django.core.exceptions import ValidationError
 import re
 
@@ -63,3 +63,16 @@ class CustomUserCreationForm(UserCreationForm):
         if admin_code and admin_code != "PKPLASIK37": 
             raise forms.ValidationError("Invalid admin code")
         return admin_code
+    
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['brand', 'name', 'product_id', 'price', 'size', 'image_url']
+        widgets = {
+            'brand': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'product_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'size': forms.NumberInput(attrs={'class': 'form-control'}),
+            'image_url': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Produk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold mb-4">Tambah Produk</h2>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Brand</label>
+                {{ form.brand }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Nama Produk</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Product ID</label>
+                {{ form.product_id }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Harga</label>
+                {{ form.price }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Ukuran</label>
+                {{ form.size }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">URL Gambar</label>
+                {{ form.image_url }}
+            </div>
+
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                Tambah Produk
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("addProductForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let formData = new FormData(this);
+
+            fetch("{% url 'main:add_product' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let message = document.getElementById("message");
+                if (data.error) {
+                    message.textContent = data.error;
+                    message.classList.add("text-red-500");
+                } else {
+                    message.textContent = "Produk berhasil ditambahkan!";
+                    message.classList.add("text-green-500");
+                    document.getElementById("addProductForm").reset();
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+
+</body>
+</html>
