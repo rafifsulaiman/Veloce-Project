@@ -5,6 +5,7 @@ from django.db.models import Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 import re
+import json
 
 # Create your models here.
 
@@ -69,3 +70,45 @@ class CustomUser(AbstractUser):
     @property
     def is_regular_user(self):
         return not self.is_admin and not self.is_superuser
+
+class Product(models.Model):
+    BRAND_CHOICES = [
+        ('Nike', 'Nike'),
+        ('Adidas', 'Adidas'),
+    ]
+    
+    brand = models.CharField(max_length=50, choices=BRAND_CHOICES)
+    name = models.CharField(max_length=255)
+    product_id = models.CharField(max_length=50, unique=True)
+    price = models.IntegerField()
+    size = models.IntegerField()
+    image_url = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def get_images(self):
+        """
+        Returns list of image URLs if stored as JSON string,
+        otherwise returns single image URL
+        """
+        try:
+            # Try to parse as JSON list
+            return json.loads(self.image_url)
+        except (json.JSONDecodeError, TypeError):
+            # If not valid JSON, return as single URL
+            return [self.image_url]
+    
+    def main_image(self):
+        """Returns the first image from the list or the single image"""
+        images = self.get_images()
+        if isinstance(images, list) and images:
+            return images[0]
+        return self.image_url
+    
+    def __str__(self):
+        return f"{self.brand} - {self.name} (Size {self.size})"
+    
+    class Meta:
+        ordering = ['brand', 'name', 'size']
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'

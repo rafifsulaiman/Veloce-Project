@@ -48,4 +48,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "veloce.wsgi:application"]
+CMD gunicorn 'env.lib.python3.12.site-packages.asgiref.wsgi' --bind=0.0.0.0:8000

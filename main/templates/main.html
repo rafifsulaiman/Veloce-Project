@@ -4,9 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Halaman Utama</title>
+    <style>
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </head>
 <body>
     <h1>Halaman Utama</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     {% if user.is_authenticated %}
         <h3>Data User Terbaru:</h3>
@@ -15,14 +52,14 @@
         <p>Email: {{ user.email }}</p>
         <p>Lokasi: {{ user.location }}</p>
         <p>Status: {% if user.is_admin %}Admin{% else %}User Regular{% endif %}</p>
-        <a href="{% url 'main:register' %}">Daftar User Baru</a>
-        <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Logout</button>
-        </form>
+        
+        <a href="{% url 'main:register' %}" class="btn">Daftar User Baru</a>
+        <a href="{% url 'main:product_catalog' %}" class="btn">Katalog Produk</a>
+        <a href="{% url 'main:logout' %}" class="btn btn-danger">Logout</a>
     {% else %}
         <p>Silakan login atau daftar untuk melanjutkan.</p>
-        <a href="{% url 'main:register' %}">Daftar</a>
+        <a href="{% url 'main:login' %}" class="btn">Login</a>
+        <a href="{% url 'main:register' %}" class="btn">Daftar</a>
     {% endif %}
 </body>
 </html>

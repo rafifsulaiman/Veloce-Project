@@ -60,6 +60,6 @@ class CustomUserCreationForm(UserCreationForm):
 
     def clean_admin_code(self):
         admin_code = self.cleaned_data.get('admin_code')
-        if admin_code and admin_code != "PKPLASIK37":  # Replace with your actual admin code
+        if admin_code and admin_code != "PKPLASIK37": 
             raise forms.ValidationError("Invalid admin code")
         return admin_code
