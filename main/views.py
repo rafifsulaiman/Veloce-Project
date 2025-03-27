@@ -11,9 +11,15 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 def show_main(request):
-    context = {
-        "user": request.user
-    }
+    """
+    Main homepage view accessible to all users (guest, authenticated, and admin)
+    """
+    context = {}
+    
+    # Add user-specific info to context if authenticated
+    if request.user.is_authenticated:
+        context["is_admin"] = request.user.is_staff
+    
     return render(request, 'main.html', context)
 
 def register(request):

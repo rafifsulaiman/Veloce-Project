@@ -7,12 +7,12 @@ app_name = 'main'
 
 urlpatterns = [
     path('', show_main, name='show_main'),
+    path('home/', show_main, name='index'),
     path('register/', register, name='register'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
     path('catalog/', product_catalog, name='product_catalog'),
     path('product/<str:product_id>/', product_detail, name='product_detail'),
-    path('', user_login, name='index'),
     path('admin-page/', admin_page, name='admin_page'),
     path('add-product/', add_product, name='add_product'),
     path('edit-product/<str:product_id>/', edit_product, name='edit_product'),

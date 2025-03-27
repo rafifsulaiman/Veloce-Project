@@ -1,70 +1,171 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Utama</title>
-    <style>
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 5px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-danger {
-            background-color: #f44336;
-        }
-        .message {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
-</head>
-<body>
-    <h1>Halaman Utama</h1>
+{% extends 'base.html' %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-                {{ message }}
+{% block title %}Veloce - Premium Footwear Collection{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+    <!-- Hero Image -->
+    <div class="bg-gray-200 rounded-lg min-h-[400px] flex items-center justify-center">
+        <img src="https://static.nike.com/a/images/t_PDP_1728_v1/20488f52-3686-476c-b4b8-0ca430c34a05/air-force-1-07-essential-shoe-BHN3Db.jpg" 
+             alt="Featured Shoe" class="w-full h-full object-cover rounded-lg">
+    </div>
+    
+    <!-- Hero Text -->
+    <div class="flex flex-col justify-center">
+        <h1 class="text-4xl font-bold mb-4">Walk Your Way, The Veloce Way</h1>
+        <p class="text-gray-600 mb-8">
+            Experience premium quality footwear that combines style, comfort, and durability.
+            Our curated collection offers the perfect shoes for every occasion.
+        </p>
+        <div>
+            <a href="{% url 'main:product_catalog' %}" class="bg-primary-light px-6 py-3 rounded-full font-semibold inline-block hover:bg-primary-dark transition duration-200">
+                Veloce now!
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Top Selling Section -->
+<h2 class="text-3xl font-bold text-center mb-8">TOP SELLING</h2>
+
+<div class="bg-primary-light py-12 px-4 rounded-lg mb-16 relative">
+    <!-- Arrow navigation -->
+    <button class="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md z-10">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <button class="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md z-10">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <!-- Product 1 -->
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+            <div class="h-48 bg-gray-200">
+                <img src="https://static.nike.com/a/images/t_PDP_1728_v1/e9fe72b4-a153-4019-8ea6-9f31230b247c/air-force-1-07-essential-shoe-BHN3Db.jpg" alt="Shoe 1" class="w-full h-full object-cover">
             </div>
-        {% endfor %}
-    {% endif %}
-
-    {% if user.is_authenticated %}
-        <h3>Data User Terbaru:</h3>
-        <p>Username: {{ user.username }}</p>
-        <p>Nama: {{ user.first_name }} {{ user.last_name }}</p>
-        <p>Email: {{ user.email }}</p>
-        <p>Lokasi: {{ user.location }}</p>
-        <p>Status: {% if user.is_admin %}Admin{% else %}User Regular{% endif %}</p>
+            <div class="p-4">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-1">
+                    <span>Brand</span>
+                    <span>Size: XS - XL</span>
+                </div>
+                <h3 class="font-semibold">Nama Produk</h3>
+                <p class="text-gray-700">Rp550.000</p>
+            </div>
+        </div>
         
-        <a href="{% url 'main:register' %}" class="btn">Daftar User Baru</a>
-        <a href="{% url 'main:product_catalog' %}" class="btn">Katalog Produk</a>
-        <a href="{% url 'main:logout' %}" class="btn btn-danger">Logout</a>
-        {% if user.is_admin %}
-            <a href="{% url 'main:admin_page' %}" class="btn">Admin Page</a>
-            <a href="{% url 'main:add_product' %}" class="btn">nambah</a>
-        {% endif %}
-    {% else %}
-        <p>Silakan login atau daftar untuk melanjutkan.</p>
-        <a href="{% url 'main:login' %}" class="btn">Login</a>
-        <a href="{% url 'main:register' %}" class="btn">Daftar</a>
+        <!-- Product 2 -->
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+            <div class="h-48 bg-gray-200">
+                <img src="https://static.nike.com/a/images/t_PDP_1728_v1/490add03-5c99-403d-b456-48036981ac92/air-force-1-07-essential-shoe-BHN3Db.jpg" alt="Shoe 2" class="w-full h-full object-cover">
+            </div>
+            <div class="p-4">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-1">
+                    <span>Brand</span>
+                    <span>Size: XS - XL</span>
+                </div>
+                <h3 class="font-semibold">Nama Produk</h3>
+                <p class="text-gray-700">Rp550.000</p>
+            </div>
+        </div>
+        
+        <!-- Product 3 -->
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+            <div class="h-48 bg-gray-200">
+                <img src="https://static.nike.com/a/images/t_PDP_1728_v1/d4e9d5d6-3c97-4e58-bed6-1a2780519612/air-force-1-07-essential-shoe-BHN3Db.jpg" alt="Shoe 3" class="w-full h-full object-cover">
+            </div>
+            <div class="p-4">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-1">
+                    <span>Brand</span>
+                    <span>Size: XS - XL</span>
+                </div>
+                <h3 class="font-semibold">Nama Produk</h3>
+                <p class="text-gray-700">Rp550.000</p>
+            </div>
+        </div>
+        
+        <!-- Product 4 -->
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+            <div class="h-48 bg-gray-200">
+                <img src="https://static.nike.com/a/images/t_PDP_1728_v1/8222053d-ec2a-4ba9-a8bb-7fe7e2108dad/air-force-1-07-essential-shoe-BHN3Db.jpg" alt="Shoe 4" class="w-full h-full object-cover">
+            </div>
+            <div class="p-4">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-1">
+                    <span>Brand</span>
+                    <span>Size: XS - XL</span>
+                </div>
+                <h3 class="font-semibold">Nama Produk</h3>
+                <p class="text-gray-700">Rp550.000</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Explore More Button -->
+    <div class="text-center mt-8">
+        <a href="{% url 'main:product_catalog' %}" class="font-medium hover:underline">Explore More</a>
+    </div>
+</div>
 
-    {% endif %}
-</body>
-</html>
+<!-- Features Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+    <!-- Feature 1 -->
+    <div class="col-span-2">
+        <h2 class="text-2xl font-bold mb-3">Curated Footwear Collection</h2>
+        <p class="text-gray-600 mb-4">
+            Discover an exclusive range of premium shoes and sandals from top brands, meticulously 
+            selected to suit every style and occasion. Whether you're after everyday comfort or a bold 
+            fashion statement, our collection offers quality and trendsetting designs.
+        </p>
+    </div>
+    
+    <!-- Feature Button -->
+    <div class="flex items-center justify-center md:justify-start">
+        <a href="{% url 'main:product_catalog' %}" class="bg-primary-light px-6 py-3 rounded-full font-semibold inline-block hover:bg-primary-dark transition duration-200">
+            Our Product
+        </a>
+    </div>
+    
+    <!-- Feature 2 -->
+    <div class="col-span-2">
+        <h2 class="text-2xl font-bold mb-3">Personalized Shopping Experience</h2>
+        <p class="text-gray-600 mb-4">
+            Enjoy a seamless, user-friendly platform that tailors recommendations to your unique taste. 
+            Our smart search features and detailed product reviews help you quickly find the perfect pair 
+            to match your style and lifestyle.
+        </p>
+    </div>
+    
+    <div></div>
+    
+    <!-- Feature 3 -->
+    <div class="col-span-2">
+        <h2 class="text-2xl font-bold mb-3">Secure Checkout</h2>
+        <p class="text-gray-600 mb-4">
+            Shop with confidence through our robust, secure checkout process designed for your peace of 
+            mind. Our dedicated support team is available around the clock, ensuring any questions or 
+            concerns are addressed promptly for a hassle-free shopping experience.
+        </p>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="bg-black text-white py-12 px-8 rounded-lg mb-16">
+    <div class="text-center max-w-3xl mx-auto">
+        <h2 class="text-3xl font-bold mb-4">VELOCE</h2>
+        <p class="mb-6">
+            Navigate effortlessly through a curated selection of sneakers, boots, and more,
+            while community reviews and ratings guide your choices for a confident
+            purchase. Plus, stay in the know with exclusive promotions and discounts that
+            make high-quality footwear more accessible than ever.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Carousel functionality could be added here in the future
+</script>
+{% endblock %}

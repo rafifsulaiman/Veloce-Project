@@ -3,13 +3,13 @@
 <nav class="bg-white shadow-md px-6 py-3">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <!-- Logo -->
-        <a href="{% url 'main:index' %}" class="flex items-center">
+        <a href="{% url 'main:show_main' %}" class="flex items-center">
             <img src="{% static 'img/logo.png' %}" alt="Veloce Logo" class="h-12">
         </a>
         
         <!-- Navigation Links -->
         <div class="hidden md:flex space-x-6">
-            <a href="{% url 'main:index' %}" class="font-semibold">HOME</a>
+            <a href="{% url 'main:show_main' %}" class="font-semibold">HOME</a>
             <a href="{% url 'main:product_catalog' %}" class="font-semibold">KATALOG</a>
             
             {% if user.is_authenticated and not user.is_staff %}
@@ -72,7 +72,7 @@
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
         <div class="flex flex-col space-y-3">
-            <a href="{% url 'main:index' %}" class="font-semibold py-2">HOME</a>
+            <a href="{% url 'main:show_main' %}" class="font-semibold py-2">HOME</a>
             <a href="{% url 'main:product_catalog' %}" class="font-semibold py-2">KATALOG</a>
             
             {% if user.is_authenticated and not user.is_staff %}
