@@ -1,0 +1,104 @@
+{% load static %}
+<!-- Navbar -->
+<nav class="bg-white shadow-md px-6 py-3">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <!-- Logo -->
+        <a href="{% url 'main:index' %}" class="flex items-center">
+            <img src="{% static 'img/logo.png' %}" alt="Veloce Logo" class="h-12">
+        </a>
+        
+        <!-- Navigation Links -->
+        <div class="hidden md:flex space-x-6">
+            <a href="{% url 'main:index' %}" class="font-semibold">HOME</a>
+            <a href="{% url 'main:product_catalog' %}" class="font-semibold">KATALOG</a>
+            
+            {% if user.is_authenticated and not user.is_staff %}
+            <a href="{% url 'main:cart' %}" class="font-semibold">CART</a>
+            {% endif %}
+            
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'main:admin_page' %}" class="font-semibold">ADMIN DASHBOARD</a>
+            {% endif %}
+        </div>
+        
+        <!-- User Actions -->
+        <div class="flex items-center">
+            {% if user.is_authenticated %}
+            <!-- User dropdown for authenticated users -->
+            <div class="relative">
+                <button id="userDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                    <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-black"></i>
+                    </div>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                    <div class="px-4 py-2 border-b border-gray-200">
+                        <p class="font-medium text-sm">Hi, {{ user.first_name }}</p>
+                        {% if user.is_staff %}
+                        <p class="text-xs text-gray-500">Admin User</p>
+                        {% endif %}
+                    </div>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+                    {% if not user.is_staff %}
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Transactions</a>
+                    {% endif %}
+                    <a href="{% url 'main:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Guest user links -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="{% url 'main:login' %}" class="font-semibold">LOGIN</a>
+                <a href="{% url 'main:register' %}" class="bg-primary-light px-4 py-2 rounded-full font-semibold hover:bg-primary-dark transition duration-200">REGISTER</a>
+            </div>
+            
+            <!-- Mobile user icon for guest -->
+            <div class="md:hidden">
+                <a href="{% url 'main:login' %}" class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-black"></i>
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-button" class="ml-4 md:hidden focus:outline-none">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+        <div class="flex flex-col space-y-3">
+            <a href="{% url 'main:index' %}" class="font-semibold py-2">HOME</a>
+            <a href="{% url 'main:product_catalog' %}" class="font-semibold py-2">KATALOG</a>
+            
+            {% if user.is_authenticated and not user.is_staff %}
+            <a href="{% url 'main:cart' %}" class="font-semibold py-2">CART</a>
+            {% endif %}
+            
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'main:admin_page' %}" class="font-semibold py-2">ADMIN DASHBOARD</a>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+            <div class="pt-2 border-t border-gray-200">
+                <p class="font-medium">Hi, {{ user.first_name }}</p>
+                <a href="#" class="block py-2 text-sm">My Profile</a>
+                {% if not user.is_staff %}
+                <a href="#" class="block py-2 text-sm">Transactions</a>
+                {% endif %}
+                <a href="{% url 'main:logout' %}" class="block py-2 text-sm text-red-600">Logout</a>
+            </div>
+            {% else %}
+            <div class="flex flex-col space-y-3 pt-2 border-t border-gray-200">
+                <a href="{% url 'main:login' %}" class="font-semibold py-2">LOGIN</a>
+                <a href="{% url 'main:register' %}" class="bg-primary-light px-4 py-2 rounded-full font-semibold text-center hover:bg-primary-dark transition duration-200">REGISTER</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</nav> 
+

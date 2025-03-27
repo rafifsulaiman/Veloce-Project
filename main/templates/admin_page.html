@@ -116,23 +116,23 @@
             return cookieValue;
         }        
         
-            // Fungsi untuk memperbarui tampilan tabel setelah update
-            {% comment %} function updateTableRow(productId, formData) {
-                const row = document.querySelector(`#product-row-${productId}`);
-                if (row) {
-                    row.querySelector('.product-name').textContent = formData.name;
+        // Fungsi untuk memperbarui tampilan tabel setelah update
+        function updateTableRow(productId, formData) {
+            const row = document.querySelector(`#product-row-${productId}`);
+            if (row) {
+                row.querySelector('.product-name').textContent = formData.name;
                     row.querySelector('.product-price').textContent = `Rp${formData.price}`;
                     row.querySelector('.product-size').textContent = formData.size;
-                    row.querySelector('.product-image img').src = formData.image_url;
-                }
-            }                {% endcomment %}
+                row.querySelector('.product-image img').src = formData.image_url;
+            }
+        }
         
         // Fungsi untuk mengambil CSRF token dari HTML
-        {% comment %} function getCSRFToken() {
+        function getCSRFToken() {
             let token = document.querySelector('[name=csrfmiddlewaretoken]').value;
             console.log("CSRF Token:", token); // Debugging
             return token;
-        } {% endcomment %}
+        }
     
         document.addEventListener("DOMContentLoaded", function() {
             // Handling Delete button click

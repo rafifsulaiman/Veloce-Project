@@ -43,10 +43,10 @@ def user_login(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f"Berhasil login sebagai {username}")
-                if user.is_admin:
-                    return redirect('main:show_main')  # Redirect admin ke halaman admin
+                if user.is_staff:
+                    return redirect('main:admin_page')  # Redirect admin to admin page
                 else:
-                    return redirect('main:show_main')  # Redirect user biasa ke halaman utama
+                    return redirect('main:product_catalog')  # Redirect regular user to catalog
             else:
                 messages.error(request, "Username atau password salah.")
         else:
@@ -60,25 +60,25 @@ def user_logout(request):
     messages.success(request, "Berhasil logout.")
     return redirect('main:login')
 
-@login_required
 def product_catalog(request):
-    # Ambil semua produk
+    # Get all products
     products = Product.objects.all()
     
-    # Filter berdasarkan brand jika ada parameter
+    # Filter by brand if parameter exists
     brand_filter = request.GET.get('brand')
     if brand_filter:
         products = products.filter(brand=brand_filter)
     
-    # Filter berdasarkan ukuran jika ada parameter
+    # Filter by size if parameter exists
     size_filter = request.GET.get('size')
     if size_filter:
         products = products.filter(size=size_filter)
     
-    # Ambil daftar brand dan ukuran untuk filter
+    # Get list of brands and sizes for filter
     brands = Product.objects.values_list('brand', flat=True).distinct()
     sizes = Product.objects.values_list('size', flat=True).distinct().order_by('size')
     
+    # Prepare context with basic information
     context = {
         'products': products,
         'brands': brands,
@@ -86,6 +86,10 @@ def product_catalog(request):
         'selected_brand': brand_filter,
         'selected_size': size_filter,
     }
+    
+    # Add information about whether user is an admin
+    if request.user.is_authenticated:
+        context['is_admin'] = request.user.is_staff
     
     return render(request, 'catalog.html', context)
 
@@ -95,20 +99,21 @@ def product_detail(request, product_id):
         product = Product.objects.get(product_id=product_id)
         context = {
             'product': product,
-            'images': product.get_images()
+            'images': product.get_images(),
+            'is_admin': request.user.is_staff
         }
         return render(request, 'product_detail.html', context)
     except Product.DoesNotExist:
         messages.error(request, "Produk tidak ditemukan")
         return redirect('main:product_catalog')
     
+@login_required
 def admin_page(request):
-    if not request.user.is_admin:
+    if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('main:product_catalog')
     
     product = Product.objects.all()
-    # print(product)
     
     context = {
         'products': product
@@ -118,7 +123,7 @@ def admin_page(request):
     
 @login_required
 def add_product(request):
-    if not request.user.is_admin:
+    if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('main:product_catalog')
     
@@ -135,10 +140,7 @@ def add_product(request):
 @login_required
 @csrf_exempt
 def edit_product(request, product_id):
-    print(f"Received request method: {request.method}")  # Debugging
-    print(f"Received request body: {request.body}")  # Debugging
-
-    if not request.user.is_admin:
+    if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('main:product_catalog')
 
@@ -147,7 +149,6 @@ def edit_product(request, product_id):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print(f"Parsed data: {data}")  # Debugging
             
             product.name = data.get('name', product.name)
             product.price = data.get('price', product.price)
@@ -193,9 +194,26 @@ def get_product_data(request):
 
 @login_required
 def delete_product(request, product_id):
-    if not request.user.is_admin:
+    if not request.user.is_staff:
         return JsonResponse({'error': "Anda tidak memiliki izin untuk mengakses halaman ini."}, status=403)
     
     product = get_object_or_404(Product, product_id=product_id)
     product.delete()
     return JsonResponse({'message': "Produk berhasil dihapus."})
+
+@login_required
+def cart_view(request):
+    """
+    View for displaying the user's shopping cart
+    Admin users are restricted from accessing this page
+    """
+    if request.user.is_staff:
+        messages.error(request, "Admin users cannot access the shopping cart.")
+        return redirect('main:product_catalog')
+    
+    context = {
+        "user": request.user,
+        # Here you would normally include cart items from your database
+        # For now, we'll use an empty context until cart functionality is implemented
+    }
+    return render(request, 'cart.html', context)

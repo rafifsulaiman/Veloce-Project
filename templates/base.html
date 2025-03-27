@@ -4,11 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'image/logo_bulet.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
     {% block meta %}{% endblock meta %}
     <script src="https://cdn.tailwindcss.com"></script> 
-    <link rel="stylesheet" href="{% static 'css/global.css' %}"/>   
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}Veloce{% endblock %}</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -19,28 +21,96 @@
         }
 
         .main-content {
-            flex: 1; /* Ini penting agar content bisa mendorong footer ke bawah */
+            flex: 1; /* This pushes the footer to the bottom */
         }
     </style>
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Poppins', 'sans-serif'],
-            },
-          },
-        },
-      }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#7cb342',
+                        'primary-light': '#ddf1a0',
+                        'primary-dark': '#c5e17a',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
     </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="main-content flex-1">
-        {% block content %}{% endblock content %}
+    <!-- Include Navbar -->
+    {% include 'navbar.html' %}
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-6 py-2">
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% elif message.tags == 'error' %}
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% else %}
+                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Content -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            {% block content %}{% endblock content %}
+        </div>
     </div>
-
-    {% comment %} 
-    {% include 'footer.html' %}  
-    {% endcomment %}
+    
+    <!-- Include Footer -->
+    {% include 'footer.html' %}
+    
+    <!-- JavaScript -->
+    {% block scripts %}{% endblock %}
+    
+    <!-- Navbar JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown functionality
+            const userButton = document.getElementById('userDropdownButton');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            if (userButton) {
+                userButton.addEventListener('click', function() {
+                    userDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
