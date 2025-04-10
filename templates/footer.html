@@ -18,36 +18,38 @@
             <div class="text-center">
                 <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'main:show_main' %}" class="text-gray-300 hover:text-white transition">Home</a></li>
-                    <li><a href="{% url 'main:product_catalog' %}" class="text-gray-300 hover:text-white transition">Catalog</a></li>
+                    <li><a href="{% url 'home:index' %}" class="text-gray-300 hover:text-white transition">Home</a></li>
+                    <li><a href="{% url 'products:catalog' %}" class="text-gray-300 hover:text-white transition">Catalog</a></li>
                     {% if user.is_authenticated and not user.is_staff %}
-                    <li><a href="{% url 'main:cart' %}" class="text-gray-300 hover:text-white transition">Cart</a></li>
+                    <li><a href="{% url 'cart:cart' %}" class="text-gray-300 hover:text-white transition">Cart</a></li>
                     {% endif %}
                     {% if user.is_authenticated and user.is_staff %}
-                    <li><a href="{% url 'main:admin_page' %}" class="text-gray-300 hover:text-white transition">Admin Dashboard</a></li>
+                    <li><a href="{% url 'products:admin_page' %}" class="text-gray-300 hover:text-white transition">Admin Dashboard</a></li>
                     {% endif %}
                 </ul>
             </div>
             
             <!-- Social and contact -->
             <div class="text-center md:text-right">
-                <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
-                <div class="flex justify-center md:justify-end space-x-4 mb-6">
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-dark transition">
-                        <i class="fab fa-twitter text-white"></i>
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-dark transition">
-                        <i class="fab fa-facebook-f text-white"></i>
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-dark transition">
-                        <i class="fab fa-instagram text-white"></i>
-                    </a>
+                <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-center justify-center md:justify-end">
+                        <i class="fas fa-envelope mr-2"></i>
+                        <a href="mailto:info@veloce.com" class="text-gray-300 hover:text-white transition">info@veloce.com</a>
+                    </li>
+                    <li class="flex items-center justify-center md:justify-end">
+                        <i class="fas fa-phone mr-2"></i>
+                        <a href="tel:+6281234567890" class="text-gray-300 hover:text-white transition">+62 812 3456 7890</a>
+                    </li>
+                </ul>
+                <div class="mt-4 flex justify-center md:justify-end space-x-4">
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-instagram"></i></a>
                 </div>
-                <p class="text-sm text-gray-300">support@veloceshoes.com</p>
             </div>
         </div>
-        <div class="h-px bg-gray-800 my-6"></div>
-        <div class="text-center text-sm text-gray-400">
+        <div class="mt-8 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
             <p>© 2023 Veloce. All rights reserved.</p>
         </div>
     </div>

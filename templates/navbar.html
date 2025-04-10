@@ -1,104 +1,128 @@
 {% load static %}
 <!-- Navbar -->
-<nav class="bg-white shadow-md px-6 py-3">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <!-- Logo -->
-        <a href="{% url 'main:show_main' %}" class="flex items-center">
-            <img src="{% static 'img/logo.png' %}" alt="Veloce Logo" class="h-12">
-        </a>
-        
-        <!-- Navigation Links -->
-        <div class="hidden md:flex space-x-6">
-            <a href="{% url 'main:show_main' %}" class="font-semibold">HOME</a>
-            <a href="{% url 'main:product_catalog' %}" class="font-semibold">KATALOG</a>
-            
-            {% if user.is_authenticated and not user.is_staff %}
-            <a href="{% url 'main:cart' %}" class="font-semibold">CART</a>
-            {% endif %}
-            
-            {% if user.is_authenticated and user.is_staff %}
-            <a href="{% url 'main:admin_page' %}" class="font-semibold">ADMIN DASHBOARD</a>
-            {% endif %}
-        </div>
-        
-        <!-- User Actions -->
-        <div class="flex items-center">
-            {% if user.is_authenticated %}
-            <!-- User dropdown for authenticated users -->
-            <div class="relative">
-                <button id="userDropdownButton" class="flex items-center space-x-2 focus:outline-none">
-                    <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center">
-                        <i class="fas fa-user text-black"></i>
-                    </div>
-                </button>
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo and main nav links -->
+            <div class="flex">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'home:index' %}" class="flex items-center">
+                        <img class="h-12 w-auto" src="{% static 'img/logo.png' %}" alt="Veloce Logo">
+                        <span class="text-2xl font-bold ml-2 text-black">Veloce</span>
+                    </a>
+                </div>
                 
-                <!-- Dropdown Menu -->
-                <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                    <div class="px-4 py-2 border-b border-gray-200">
-                        <p class="font-medium text-sm">Hi, {{ user.first_name }}</p>
-                        {% if user.is_staff %}
-                        <p class="text-xs text-gray-500">Admin User</p>
-                        {% endif %}
-                    </div>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
-                    {% if not user.is_staff %}
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Transactions</a>
+                <!-- Desktop navigation -->
+                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                    <a href="{% url 'home:index' %}" class="border-transparent text-gray-900 hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        Home
+                    </a>
+                    <a href="{% url 'products:catalog' %}" class="border-transparent text-gray-900 hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        Catalog
+                    </a>
+                    
+                    {% if user.is_authenticated and not user.is_staff %}
+                    <a href="{% url 'cart:cart' %}" class="border-transparent text-gray-900 hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        Cart
+                    </a>
                     {% endif %}
-                    <a href="{% url 'main:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                    
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'products:admin_page' %}" class="border-transparent text-gray-900 hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        Admin Dashboard
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-            {% else %}
-            <!-- Guest user links -->
-            <div class="hidden md:flex items-center space-x-4">
-                <a href="{% url 'main:login' %}" class="font-semibold">LOGIN</a>
-                <a href="{% url 'main:register' %}" class="bg-primary-light px-4 py-2 rounded-full font-semibold hover:bg-primary-dark transition duration-200">REGISTER</a>
-            </div>
             
-            <!-- Mobile user icon for guest -->
-            <div class="md:hidden">
-                <a href="{% url 'main:login' %}" class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-black"></i>
-                </a>
+            <!-- Account management links -->
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                {% if user.is_authenticated %}
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-900">Hi, {{ user.username }}!</span>
+                    <a href="{% url 'users:logout' %}" class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-green-800 rounded">
+                        Logout
+                    </a>
+                </div>
+                {% else %}
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'users:login' %}" class="text-gray-700 hover:text-primary text-sm font-medium">Log in</a>
+                    <a href="{% url 'users:register' %}" class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-green-800 rounded">
+                        Sign up
+                    </a>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
             
             <!-- Mobile menu button -->
-            <button id="mobile-menu-button" class="ml-4 md:hidden focus:outline-none">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
+            <div class="flex items-center sm:hidden">
+                <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
     
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
-        <div class="flex flex-col space-y-3">
-            <a href="{% url 'main:show_main' %}" class="font-semibold py-2">HOME</a>
-            <a href="{% url 'main:product_catalog' %}" class="font-semibold py-2">KATALOG</a>
+    <!-- Mobile menu, show/hide based on menu state -->
+    <div class="mobile-menu hidden sm:hidden">
+        <div class="pt-2 pb-3 space-y-1">
+            <a href="{% url 'home:index' %}" class="bg-white text-primary block pl-3 pr-4 py-2 border-l-4 border-primary text-base font-medium">
+                Home
+            </a>
+            <a href="{% url 'products:catalog' %}" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                Catalog
+            </a>
             
             {% if user.is_authenticated and not user.is_staff %}
-            <a href="{% url 'main:cart' %}" class="font-semibold py-2">CART</a>
+            <a href="{% url 'cart:cart' %}" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                Cart
+            </a>
             {% endif %}
             
             {% if user.is_authenticated and user.is_staff %}
-            <a href="{% url 'main:admin_page' %}" class="font-semibold py-2">ADMIN DASHBOARD</a>
-            {% endif %}
-            
-            {% if user.is_authenticated %}
-            <div class="pt-2 border-t border-gray-200">
-                <p class="font-medium">Hi, {{ user.first_name }}</p>
-                <a href="#" class="block py-2 text-sm">My Profile</a>
-                {% if not user.is_staff %}
-                <a href="#" class="block py-2 text-sm">Transactions</a>
-                {% endif %}
-                <a href="{% url 'main:logout' %}" class="block py-2 text-sm text-red-600">Logout</a>
-            </div>
-            {% else %}
-            <div class="flex flex-col space-y-3 pt-2 border-t border-gray-200">
-                <a href="{% url 'main:login' %}" class="font-semibold py-2">LOGIN</a>
-                <a href="{% url 'main:register' %}" class="bg-primary-light px-4 py-2 rounded-full font-semibold text-center hover:bg-primary-dark transition duration-200">REGISTER</a>
-            </div>
+            <a href="{% url 'products:admin_page' %}" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                Admin Dashboard
+            </a>
             {% endif %}
         </div>
+        
+        <div class="pt-4 pb-3 border-t border-gray-200">
+            <div class="mt-3 space-y-1">
+                {% if user.is_authenticated %}
+                <div class="px-4 py-2 text-base font-medium text-gray-500">
+                    Hi, {{ user.username }}!
+                </div>
+                <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                    Logout
+                </a>
+                {% else %}
+                <a href="{% url 'users:login' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                    Log in
+                </a>
+                <a href="{% url 'users:register' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                    Sign up
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-</nav> 
+</nav>
+
+<script>
+  // Mobile menu toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  });
+</script> 
 

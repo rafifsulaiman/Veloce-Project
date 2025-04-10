@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Veloce{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">REGISTER</h1>
+
+    <form method="post" class="flex flex-col space-y-4">
+        {% csrf_token %}
+        
+        <div class="space-y-1">
+            <label for="id_username" class="font-medium">Username:</label>
+            <input type="text" name="username" id="id_username" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                   {% if form.username.value %}value="{{ form.username.value }}"{% endif %} 
+                   placeholder="Enter your username" required>
+            {% if form.username.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_password1" class="font-medium">Password:</label>
+            <input type="password" name="password1" id="id_password1"
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                   placeholder="Enter your password" required>
+            {% if form.password1.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.password1.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if form.password1.help_text %}
+                <small class="text-gray-500 text-xs">{{ form.password1.help_text }}</small>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_password2" class="font-medium">Confirm Password:</label>
+            <input type="password" name="password2" id="id_password2"
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                   placeholder="Confirm your password" required>
+            {% if form.password2.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.password2.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_first_name" class="font-medium">First Name:</label>
+            <input type="text" name="first_name" id="id_first_name" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                   {% if form.first_name.value %}value="{{ form.first_name.value }}"{% endif %} 
+                   placeholder="Enter your first name" required>
+            {% if form.first_name.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.first_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_last_name" class="font-medium">Last Name:</label>
+            <input type="text" name="last_name" id="id_last_name" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                   {% if form.last_name.value %}value="{{ form.last_name.value }}"{% endif %} 
+                   placeholder="Enter your last name" required>
+            {% if form.last_name.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.last_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_email" class="font-medium">Email:</label>
+            <input type="email" name="email" id="id_email"
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                   {% if form.email.value %}value="{{ form.email.value }}"{% endif %} 
+                   placeholder="Enter your email address" required>
+            {% if form.email.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.email.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="space-y-1">
+            <label for="id_admin_code" class="font-medium">Admin Code (optional):</label>
+            <input type="text" name="admin_code" id="id_admin_code"
+                   class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                   {% if form.admin_code.value %}value="{{ form.admin_code.value }}"{% endif %}
+                   placeholder="Enter admin code if you have one">
+            {% if form.admin_code.errors %}
+                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                    {% for error in form.admin_code.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if form.admin_code.help_text %}
+                <small class="text-gray-500 text-xs">{{ form.admin_code.help_text }}</small>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-4 rounded-full mt-4 transition duration-300">
+            REGISTER
+        </button>
+    </form>
+    
+    <div class="mt-6 text-center">
+        Already have an account? <a href="{% url 'users:login' %}" class="font-bold text-black">Login here</a>
+    </div>
+</div>
+{% endblock %}

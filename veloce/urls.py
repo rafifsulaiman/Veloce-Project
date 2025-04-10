@@ -5,8 +5,9 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('homepage.urls'))  # Cara 1: Root domain ke homepage
-    path('homepage/', include('homepage.urls')),    # Nanti kalau diakses '/', ke homepage.urls
-    path('', include('main.urls')),
+    path('', include('home.urls')),
+    path('users/', include('users.urls')),
+    path('products/', include('products.urls')),
+    path('cart/', include('cart.urls')),
     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico'))),
 ]
