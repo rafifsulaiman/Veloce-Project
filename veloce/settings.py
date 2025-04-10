@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-defaultkey")
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 # ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id']
 
 
 # Application definition
@@ -90,10 +90,11 @@ tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
+        'NAME': tmpPostgres.path.decode('utf-8').replace('/', ''),  
+        # 'NAME': tmpPostgres.path.replace('/', ''),        
         'USER': tmpPostgres.username,
         'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
+        'HOST': tmpPostgres.hostname,  
         'PORT': 5432,
     }
 }
@@ -135,13 +136,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / 'static'
-    ]
-else:
-    STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
