@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-defaultkey")
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 # ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'kelompok-37-veloce-project.pkpl.cs.ui.ac.id']
 
 # Application definition
 
@@ -157,3 +157,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = '/login/'
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
+CORS_ALLOWED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
+
