@@ -7,8 +7,6 @@
 # You can add other services your application may depend on here, such as a
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
-version: '3.8'
-
 services:
   web:
     build: .
@@ -23,8 +21,7 @@ services:
       DB_HOST: ${DB_HOST} 
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
-      SECRET_KEY: ${SECRET_KEY}
-      
+
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
 # start the database before your application. The `db-data` volume persists the
