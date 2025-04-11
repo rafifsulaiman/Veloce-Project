@@ -101,12 +101,12 @@ WSGI_APPLICATION = "veloce.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("DATABASE_NAME", 'veloce_local'),
-        'USER': os.getenv("DATABASE_USER", 'veloce'),
-        'PASSWORD': os.getenv("DATABASE_PASSWORD", 'veloce123'),
+        'NAME': os.getenv("DB_HOST", 'veloce_local'),
+        'USER': os.getenv("DB_USERNAME", 'veloce'),
+        'PASSWORD': os.getenv("DB_PASSWORD", 'veloce123'),
         # 'HOST': os.getenv("DATABASE_HOST", 'localhost'),  
-        'HOST': os.getenv("DATABASE_HOST", 'localhost'),
-        'PORT': os.getenv("DATABASE_PORT", '5432'),
+        'HOST': os.getenv("DB_HOST", 'localhost'),
+        'PORT': os.getenv("DB_PORT", '5432'),
     }
 }
 
