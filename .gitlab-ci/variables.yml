@@ -15,4 +15,4 @@ variables:
 
   # App Variables, you can add your own variables here
   # App variables must have the prefix "PODS_"
-  PODS_TEST: tests
+  PODS_SECRET_KEY: r9_8u74#op#gmul3489^z#85wgkz$cwzt*ss=2v81@rqjaazsd
