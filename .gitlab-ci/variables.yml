@@ -15,4 +15,4 @@ variables:
 
   # App Variables, you can add your own variables here
   # App variables must have the prefix "PODS_"
-PODS_ = tests
+PODS_: tests
