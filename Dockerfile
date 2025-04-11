@@ -47,9 +47,6 @@ USER appuser
 # Expose the application port
 EXPOSE 8000 
 
-# Install postgresql-client
-RUN apk add --no-cache postgresql postgresql-client
-
 # Migrate database
 RUN python manage.py makemigrations
 RUN python manage.py migrate
