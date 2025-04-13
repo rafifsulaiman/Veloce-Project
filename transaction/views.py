@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.http import Http404
 from django.db import transaction
 from django.db.models import F, Sum
+from django.urls import reverse
 import uuid
 import datetime
 from decimal import Decimal
@@ -13,6 +14,9 @@ from cart.models import CartItem
 from products.models import Product, ProductSize
 from .models import Transaction, OrderItem
 from .forms import CheckoutForm
+
+# Nilai ongkir fixed
+FIXED_DELIVERY_PRICE = 25000
 
 @login_required
 def checkout_view(request):
@@ -35,16 +39,11 @@ def checkout_view(request):
         form = CheckoutForm(request.POST)
         if form.is_valid():
             # Store form data in session for confirmation step
-            # Convert Decimal to float to avoid JSON serialization issues
-            delivery_price = form.cleaned_data.get('delivery_price', 0)
-            delivery_price_float = float(delivery_price)
-                
             request.session['checkout_data'] = {
                 'address': form.cleaned_data['address'],
                 'city': form.cleaned_data['city'],
                 'postal_code': form.cleaned_data['postal_code'],
                 'payment_method': form.cleaned_data['payment_method'],
-                'delivery_price': delivery_price_float,
             }
             return redirect('transaction:checkout_confirm')
     else:
@@ -57,6 +56,8 @@ def checkout_view(request):
         'cart_items': cart_items,
         'cart_total': cart_total,
         'form': form,
+        'delivery_price': FIXED_DELIVERY_PRICE,
+        'total_with_delivery': cart_total + FIXED_DELIVERY_PRICE
     }
     
     return render(request, 'checkout.html', context)
@@ -85,8 +86,8 @@ def checkout_confirm(request):
     
     # Calculate total for products
     product_total = sum(item.subtotal for item in cart_items)
-    # Get delivery price from session
-    delivery_price = float(checkout_data.get('delivery_price', 0))
+    # Use fixed delivery price
+    delivery_price = FIXED_DELIVERY_PRICE
     # Calculate final transaction amount
     transaction_amount = product_total + delivery_price
     
@@ -113,16 +114,16 @@ def checkout_confirm(request):
                 new_transaction = Transaction.objects.create(
                     transaction_id=transaction_id,
                     user=request.user,
-                    status='pending',  # Initially pending until payment verification
+                    status='pending',  # Menunggu pembayaran
                     transaction_amount=transaction_amount,
                     delivery_price=delivery_price,
                     shipping_address=checkout_data['address'],
                     shipping_city=checkout_data['city'],
                     shipping_postal_code=checkout_data['postal_code'],
-                    payment_method=checkout_data['payment_method'],
+                    payment_method='velocepay',
                 )
                 
-                # Create order items but don't update stock yet (will update after verification)
+                # Create order items
                 for cart_item in cart_items:
                     OrderItem.objects.create(
                         transaction=new_transaction,
@@ -140,8 +141,10 @@ def checkout_confirm(request):
                 if 'checkout_data' in request.session:
                     del request.session['checkout_data']
                 
-                # Simulate payment verification (in real app this would be a callback from payment gateway)
-                verify_payment(new_transaction.transaction_id)
+                # Generate mock VelocePay payment URL
+                payment_url = generate_velocepay_url(new_transaction)
+                new_transaction.payment_url = payment_url
+                new_transaction.save()
                 
                 return redirect('transaction:success', transaction_id=transaction_id)
                 
@@ -159,25 +162,36 @@ def checkout_confirm(request):
     
     return render(request, 'checkout_confirm.html', context)
 
-def verify_payment(transaction_id):
+def generate_velocepay_url(transaction_obj):
     """
-    Verify payment and update inventory 
-    This would typically be a separate endpoint called by payment gateway
+    Generate a mock VelocePay URL
+    In a real implementation, this would call the VelocePay API
+    """
+    # Create a mock URL with the transaction ID as a parameter
+    base_url = reverse('transaction:process_payment', args=[transaction_obj.transaction_id])
+    
+    # In a real implementation, this would include authentication tokens, etc.
+    return base_url
+
+@login_required
+def process_payment(request, transaction_id):
+    """
+    Process the payment from VelocePay
+    In a real implementation, this would be a callback from the payment processor
     """
     try:
+        txn = get_object_or_404(Transaction, transaction_id=transaction_id, user=request.user)
+        
+        if txn.status != 'pending':
+            messages.warning(request, "This order has already been processed.")
+            return redirect('transaction:order_detail', transaction_id=transaction_id)
+        
         with transaction.atomic():
-            # Get the transaction
-            txn = Transaction.objects.select_for_update().get(transaction_id=transaction_id)
-            
-            # If already processed, don't process again
-            if txn.status != 'pending':
-                return
-            
-            # Set transaction status to paid
-            txn.status = 'paid'
+            # Update transaction status
+            txn.status = 'processing'
             txn.save()
             
-            # Now reduce stock for each ordered item
+            # Update stock
             for item in txn.items.all():
                 product_size = ProductSize.objects.select_for_update().get(
                     product=item.product,
@@ -187,9 +201,13 @@ def verify_payment(transaction_id):
                 # Reduce stock
                 product_size.stock -= item.quantity
                 product_size.save()
-    except Transaction.DoesNotExist:
-        # Handle error case
-        pass
+        
+        messages.success(request, "Pembayaran berhasil! Pesanan Anda sedang diproses.")
+        return redirect('transaction:order_detail', transaction_id=transaction_id)
+        
+    except Exception as e:
+        messages.error(request, f"Error processing payment: {str(e)}")
+        return redirect('transaction:order_history')
 
 @login_required
 def transaction_success(request, transaction_id):

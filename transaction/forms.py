@@ -17,16 +17,8 @@ class CheckoutForm(forms.Form):
         max_length=10,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your postal code'})
     )
-    payment_method = forms.ChoiceField(
-        label="Payment Method",
-        choices=Transaction.PAYMENT_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    delivery_price = forms.DecimalField(
-        label="Delivery Price",
-        initial=0,
-        min_value=0,
-        max_digits=10,
-        decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Delivery price'})
+    # Hanya menggunakan VelocePay sebagai metode pembayaran
+    payment_method = forms.CharField(
+        widget=forms.HiddenInput(),
+        initial='velocepay'
     ) 
