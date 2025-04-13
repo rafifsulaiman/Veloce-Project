@@ -24,7 +24,7 @@
                     <li><a href="{% url 'cart:cart' %}" class="text-gray-300 hover:text-white transition">Cart</a></li>
                     {% endif %}
                     {% if user.is_authenticated and user.is_staff %}
-                    <li><a href="{% url 'products:admin_page' %}" class="text-gray-300 hover:text-white transition">Admin Dashboard</a></li>
+                    <li><a href="{% url 'admindashboard:admin_page' %}" class="text-gray-300 hover:text-white transition">Admin Dashboard</a></li>
                     {% endif %}
                 </ul>
             </div>

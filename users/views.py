@@ -34,7 +34,7 @@ def user_login(request):
                 login(request, user)
                 messages.success(request, f"Berhasil login sebagai {username}")
                 if user.is_staff:
-                    return redirect('products:admin_page')  # Redirect admin to admin page
+                    return redirect('admindashboard:admin_page')  # Redirect admin to admin page
                 else:
                     return redirect('products:catalog')  # Redirect regular user to catalog
             else:

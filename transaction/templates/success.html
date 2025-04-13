@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Successful - Veloce{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6">
+            <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Thank You for Your Order!</h1>
+        <p class="text-gray-600 mb-4">Your order has been placed successfully.</p>
+        <p class="text-lg font-medium">Order ID: <span class="text-primary">{{ transaction.transaction_id }}</span></p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-bold mb-6">Order Details</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-1">Shipping Address</h3>
+                <p class="text-gray-900">{{ transaction.shipping_address }}</p>
+                <p class="text-gray-900">{{ transaction.shipping_city }}, {{ transaction.shipping_postal_code }}</p>
+            </div>
+            
+            <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-1">Payment Information</h3>
+                <p class="text-gray-900">Method: {{ transaction.get_payment_method_display }}</p>
+                <p class="text-gray-900">Status: 
+                    <span class="font-medium {% if transaction.status == 'paid' %}text-green-600{% else %}text-yellow-600{% endif %}">
+                        {{ transaction.get_status_display }}
+                    </span>
+                </p>
+            </div>
+            
+            <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-1">Order Date</h3>
+                <p class="text-gray-900">{{ transaction.date_created|date:"F j, Y" }}</p>
+                <p class="text-gray-900">{{ transaction.date_created|time:"g:i A" }}</p>
+            </div>
+            
+            <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-1">Shipping Status</h3>
+                <p class="text-gray-900">{{ transaction.get_shipping_status_display }}</p>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-6">
+            <h3 class="font-medium mb-4">Order Summary</h3>
+            
+            <div class="space-y-4">
+                {% for item in transaction.items.all %}
+                <div class="flex items-center {% if not forloop.last %}pb-4 border-b border-gray-200{% endif %}">
+                    <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                        <img src="{{ item.product.main_image }}" alt="{{ item.product_name }}" class="h-full w-full object-cover object-center">
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900">{{ item.product_name }}</h4>
+                                <p class="text-xs text-gray-500">Size: {{ item.size }} | Qty: {{ item.quantity }}</p>
+                            </div>
+                            <p class="text-sm font-medium text-gray-900">Rp {{ item.product_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ item.product_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-6 border-t border-gray-200 pt-4">
+                <div class="flex justify-between mb-2">
+                    <p class="text-base font-medium text-gray-900">Product Total</p>
+                    <p class="text-base font-medium text-gray-900">Rp {{ transaction.product_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.product_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}</p>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <p class="text-base font-medium text-gray-900">Delivery Fee</p>
+                    <p class="text-base font-medium text-gray-900">Rp {{ transaction.delivery_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.delivery_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-base font-bold text-gray-900">Total</p>
+                    <p class="text-base font-bold text-primary">Rp {{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3:" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex justify-center space-x-4">
+        <a href="{% url 'transaction:order_history' %}" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300">
+            View All Orders
+        </a>
+        <a href="{% url 'products:catalog' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-full transition duration-300">
+            Continue Shopping
+        </a>
+    </div>
+</div>
+{% endblock %} 

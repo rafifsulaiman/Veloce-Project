@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Veloce{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <ol class="flex items-center space-x-2 text-sm">
+            <li><a href="{% url 'products:catalog' %}" class="text-primary-dark hover:underline">Home</a></li>
+            <li><span class="text-gray-500 mx-2">/</span></li>
+            <li><a href="{% url 'cart:cart' %}" class="text-primary-dark hover:underline">Cart</a></li>
+            <li><span class="text-gray-500 mx-2">/</span></li>
+            <li class="font-medium">Checkout</li>
+        </ol>
+    </div>
+    
+    <h1 class="text-3xl font-bold mb-8">Checkout</h1>
+    
+    <!-- Checkout Form -->
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Shipping Information Form -->
+        <div class="md:w-2/3 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-6">Shipping Information</h2>
+            
+            <form method="POST" action="{% url 'transaction:checkout' %}">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label for="id_address" class="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.city.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="id_postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.postal_code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="id_payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.payment_method.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_delivery_price" class="block text-sm font-medium text-gray-700 mb-1">Delivery Price</label>
+                        {{ form.delivery_price }}
+                        {% if form.delivery_price.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.delivery_price.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-1">Enter 0 for free shipping</p>
+                    </div>
+                    
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300">
+                            Continue to Review
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="md:w-1/3">
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                
+                <div class="space-y-4 mb-6">
+                    {% for item in cart_items %}
+                    <div class="flex items-center pb-4 border-b border-gray-200">
+                        <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                            <img src="{{ item.product.main_image }}" alt="{{ item.product.name }}" class="h-full w-full object-cover object-center">
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
+                            <p class="text-xs text-gray-500">Size: {{ item.size }} | Qty: {{ item.quantity }}</p>
+                            <p class="text-sm font-medium text-gray-900 mt-1">Rp {{ item.subtotal|stringformat:"i"|slice:"-3" }}.{{ item.subtotal|stringformat:"i"|slice:"-3:" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="border-t border-gray-200 py-4">
+                    <div class="flex justify-between text-base font-medium text-gray-900">
+                        <p>Subtotal</p>
+                        <p>Rp {{ cart_total|stringformat:"i"|slice:"-3" }}.{{ cart_total|stringformat:"i"|slice:"-3:" }}</p>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-500 mt-1">
+                        <p>Shipping</p>
+                        <p>To be calculated</p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 py-4">
+                    <div class="flex justify-between text-lg font-bold">
+                        <p>Total</p>
+                        <p>Rp {{ cart_total|stringformat:"i"|slice:"-3" }}.{{ cart_total|stringformat:"i"|slice:"-3:" }} + shipping</p>
+                    </div>
+                </div>
+                
+                <a href="{% url 'cart:cart' %}" class="text-primary-dark hover:underline text-sm flex items-center mt-6">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Return to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
