@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ProductForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Product
+from products.models import Product
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +19,7 @@ def admin_page(request):
         'products': product
     }
     
-    return render(request, 'products/admin_page.html', context)
+    return render(request, 'admin_page.html', context)
     
 @login_required
 def add_product(request):
@@ -35,7 +35,7 @@ def add_product(request):
             return redirect('products:catalog')
     else:
         form = ProductForm()
-    return render(request, 'products/add_product.html', {'form': form})
+    return render(request, 'add_product.html', {'form': form})
 
 @login_required
 @csrf_exempt
@@ -109,4 +109,4 @@ def delete_product(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     product.delete()
     messages.success(request, f"Produk {product.name} berhasil dihapus.")
-    return redirect('products:admin_page')
+    return redirect('admin_page')

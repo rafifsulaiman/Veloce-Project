@@ -178,6 +178,10 @@
 </head>
 <div class="flex flex-col min-h-screen h-screen overflow-y-auto">
     <h1 class="text-3xl font-bold mb-6">Product Management</h1>
+    <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Product List</h2>
+        <a href="{% url 'adminpage:add_product' %}" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">Add Product</a>
+    </div>
 
     <div class="overflow-y-auto h-auto max-h-[90vh] p-4">
         <table class="table-auto w-full text-left border-collapse">

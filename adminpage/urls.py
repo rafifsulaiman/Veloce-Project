@@ -4,7 +4,7 @@ from .views import (
     edit_product, delete_product, get_product, get_product_data
 )
 
-app_name = 'admin'
+app_name = 'adminpage'
 
 urlpatterns = [
     path('admin-page/', admin_page, name='admin_page'),
