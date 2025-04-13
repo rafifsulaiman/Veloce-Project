@@ -63,3 +63,26 @@ class CustomUserCreationForm(UserCreationForm):
         if admin_code and admin_code != "PKPLASIK37": 
             raise forms.ValidationError("Invalid admin code")
         return admin_code 
+
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField()
+    first_name = forms.CharField(max_length=30, required=False)
+    last_name = forms.CharField(max_length=30, required=False)
+    phone_number = forms.CharField(max_length=20, required=False)
+    gender = forms.ChoiceField(choices=CustomUser.GENDER_CHOICES, required=False)
+    
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone_number', 'gender', 'password1', 'password2']
+
+class UserLoginForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'gender', 'profile_pic_url']
+        widgets = {
+            'profile_pic_url': forms.URLInput(attrs={'placeholder': 'https://example.com/profile.jpg'}),
+        } 

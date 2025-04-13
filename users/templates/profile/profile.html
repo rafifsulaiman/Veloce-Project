@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Veloce{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row min-h-screen">
+    <!-- Sidebar -->
+    <div class="w-full md:w-1/4 bg-primary-light p-6">
+        <div class="flex items-center mb-8">
+            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-800">
+                {% if user.profile_pic_url %}
+                <img src="{{ user.profile_pic_url }}" alt="{{ user.username }}" class="w-12 h-12 rounded-full object-cover">
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {% endif %}
+            </div>
+            <div class="ml-3">
+                <p class="font-bold">{{ user.username }}</p>
+                <p>My Profile</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li class="mb-2">
+                    <a href="{% url 'users:profile' %}" class="block p-3 rounded-md bg-white font-bold transition">
+                        Profile
+                    </a>
+                </li>
+                {% if not user.is_staff %}
+                <li class="mb-2">
+                    <a href="{% url 'users:addresses' %}" class="block p-3 rounded-md hover:bg-white transition">
+                        Address
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="w-full md:w-3/4 p-6">
+        <h1 class="text-3xl font-bold mb-8">My Profile</h1>
+        
+        <div class="bg-white shadow rounded-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Username</div>
+                        <div class="font-medium">{{ user.username }}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">First Name</div>
+                        <div class="font-medium">{{ user.first_name|default:"" }}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Last Name</div>
+                        <div class="font-medium">{{ user.last_name|default:"" }}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Phone Number</div>
+                        <div class="font-medium">{{ user.phone_number|default:"" }}</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Email</div>
+                        <div class="font-medium">{{ user.email }}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Password</div>
+                        <div class="font-medium">********</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Role</div>
+                        <div class="font-medium">{% if user.is_admin %}Admin{% else %}Customer{% endif %}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-gray-500 mb-1">Gender</div>
+                        <div class="font-medium">{{ user.gender|default:"" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center mt-8">
+                <div class="w-48 h-48 rounded-full bg-primary-light flex items-center justify-center">
+                    {% if user.profile_pic_url %}
+                    <img src="{{ user.profile_pic_url }}" alt="{{ user.username }}" class="w-48 h-48 rounded-full object-cover">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-center">
+            <a href="{% url 'users:edit_profile' %}" class="bg-primary-light hover:bg-primary text-black font-bold py-3 px-12 rounded-md transition duration-300">
+                Edit Profile
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
