@@ -9,6 +9,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('products/', include('products.urls')),
     path('cart/', include('cart.urls')),
+    path('transaction/', include('transaction.urls')),
     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico'))),
     path('admindashboard/', include('admindashboard.urls')),
 ]
