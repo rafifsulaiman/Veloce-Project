@@ -49,3 +49,4 @@ EXPOSE 8000
  
 # Start the application using Gunicorn
 CMD ["gunicorn", "--access-logfile", "-", "--bind", "0.0.0.0:8000", "--workers", "3", "veloce.wsgi:application"]
+

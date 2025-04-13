@@ -35,38 +35,75 @@
             
             <!-- Product Info -->
             <div class="md:w-1/2 p-6">
-                <div class="text-sm text-gray-500 mb-2">{{ product.brand }}</div>
+                <div class="text-sm text-gray-500 mb-2">{{ product.brand }} | {{ product.get_gender_display }}</div>
                 <h1 class="text-3xl font-bold mb-4">{{ product.name }}</h1>
                 <div class="text-2xl font-bold text-primary mb-6">Rp {{ product.price|stringformat:"i"|slice:"-3" }}.{{ product.price|stringformat:"i"|slice:"-3:" }}</div>
                 
                 <div class="mb-8">
                     <div class="text-sm font-medium text-gray-700 mb-2">Product ID: {{ product.product_id }}</div>
                     
-                    <!-- Size Selection -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Available Sizes:</label>
-                        <div class="flex flex-wrap gap-2">
-                            {% for size in product.get_sizes %}
-                            <div class="size-option cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-center hover:bg-primary-light hover:border-primary transition-colors">
-                                {{ size }}
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-blue-100 text-blue-700 border-l-4 border-blue-500{% endif %} rounded">
+                                {{ message }}
                             </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- Add to Cart Button -->
-                    {% if not is_admin %}
-                    <button class="w-full bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300 flex items-center justify-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        Add to Cart
-                    </button>
-                    {% else %}
-                    <div class="bg-gray-100 border-l-4 border-yellow-500 p-4 mb-4">
-                        <p class="text-sm text-gray-700">Admin users cannot add products to cart.</p>
+                        {% endfor %}
                     </div>
                     {% endif %}
+                    
+                    <!-- Form for adding to cart -->
+                    <form id="addToCartForm" method="POST" action="{% url 'cart:add_to_cart' product.product_id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="size" id="selectedSize" value="">
+                        
+                        <!-- Size Selection -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Available Sizes:</label>
+                            <div class="flex flex-wrap gap-2">
+                                {% for size_obj in product.sizes.all %}
+                                <div class="size-option cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-center hover:bg-primary-light hover:border-primary transition-colors {% if size_obj.stock <= 0 %}opacity-50 cursor-not-allowed{% endif %}" 
+                                     data-size="{{ size_obj.size }}" 
+                                     data-stock="{{ size_obj.stock }}">
+                                    {{ size_obj.size }}
+                                    <span class="text-xs block">Stock: {{ size_obj.stock }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Size and Stock Info -->
+                        <div id="selected-size-info" class="mb-4 hidden">
+                            <p class="text-sm text-gray-700">
+                                Selected Size: <span id="selected-size-value" class="font-medium"></span>
+                                <span class="text-sm text-gray-500 ml-2">Available: <span id="selected-size-stock" class="font-medium"></span></span>
+                            </p>
+                        </div>
+                        
+                        <!-- Quantity Selection -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity:</label>
+                            <div class="flex items-center">
+                                <button type="button" id="decreaseQuantity" class="bg-gray-200 px-3 py-1 rounded-l">-</button>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="99" class="w-16 text-center py-1 border-t border-b focus:outline-none">
+                                <button type="button" id="increaseQuantity" class="bg-gray-200 px-3 py-1 rounded-r">+</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Add to Cart Button -->
+                        {% if not is_admin %}
+                        <button type="submit" id="add-to-cart-btn" class="w-full bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300 flex items-center justify-center" disabled>
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Add to Cart
+                        </button>
+                        {% else %}
+                        <div class="bg-gray-100 border-l-4 border-yellow-500 p-4 mb-4">
+                            <p class="text-sm text-gray-700">Admin users cannot add products to cart.</p>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
             </div>
         </div>
@@ -88,12 +125,67 @@
         thumbnail.classList.add('ring-2', 'ring-primary');
     }
     
-    // Size selection
+    // Size selection and quantity controls
     document.addEventListener('DOMContentLoaded', function() {
         const sizeOptions = document.querySelectorAll('.size-option');
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+        const selectedSizeInfo = document.getElementById('selected-size-info');
+        const selectedSizeValue = document.getElementById('selected-size-value');
+        const selectedSizeStock = document.getElementById('selected-size-stock');
+        const selectedSizeInput = document.getElementById('selectedSize');
+        const quantityInput = document.getElementById('quantity');
+        const decreaseBtn = document.getElementById('decreaseQuantity');
+        const increaseBtn = document.getElementById('increaseQuantity');
+        let currentStock = 0;
         
+        // Quantity controls
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+        }
+        
+        if (increaseBtn) {
+            increaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue < currentStock && currentValue < 99) {
+                    quantityInput.value = currentValue + 1;
+                }
+            });
+        }
+        
+        // Update quantity max when stock changes
+        quantityInput.addEventListener('change', function() {
+            const value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > currentStock) {
+                this.value = currentStock;
+            } else if (value > 99) {
+                this.value = 99;
+            }
+        });
+        
+        // Size selection
         sizeOptions.forEach(option => {
             option.addEventListener('click', function() {
+                const size = this.dataset.size;
+                const stock = parseInt(this.dataset.stock);
+                
+                // Only allow selecting sizes with stock > 0
+                if (stock <= 0) return;
+                
+                // Set current stock
+                currentStock = stock;
+                
+                // Update quantity if needed
+                if (parseInt(quantityInput.value) > stock) {
+                    quantityInput.value = stock;
+                }
+                
                 // Remove selected class from all options
                 sizeOptions.forEach(opt => {
                     opt.classList.remove('bg-primary-light', 'border-primary');
@@ -101,8 +193,31 @@
                 
                 // Add selected class to clicked option
                 this.classList.add('bg-primary-light', 'border-primary');
+                
+                // Update selected size info and form input
+                selectedSizeValue.textContent = size;
+                selectedSizeStock.textContent = stock;
+                selectedSizeInfo.classList.remove('hidden');
+                selectedSizeInput.value = size;
+                
+                // Enable add to cart button
+                if (addToCartBtn) {
+                    addToCartBtn.disabled = false;
+                }
             });
         });
+        
+        // Validate form before submission
+        const form = document.getElementById('addToCartForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const selectedSize = selectedSizeInput.value;
+                if (!selectedSize) {
+                    e.preventDefault();
+                    alert('Please select a size before adding to cart.');
+                }
+            });
+        }
     });
 </script>
 {% endblock %} 

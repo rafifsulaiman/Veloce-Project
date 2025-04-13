@@ -76,10 +76,23 @@ def admin_page(request):
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('products:catalog')
     
-    product = Product.objects.all()
+    products = Product.objects.all()
+    
+    # Calculate statistics for dashboard
+    total_stock = sum(size.stock for product in products for size in product.sizes.all())
+    brands_count = products.values('brand').distinct().count()
+    
+    # Get unique sizes count
+    sizes = set()
+    for product in products:
+        sizes.update(product.get_sizes())
+    sizes_count = len(sizes)
     
     context = {
-        'products': product
+        'products': products,
+        'total_stock': total_stock,
+        'brands_count': brands_count,
+        'sizes_count': sizes_count
     }
     
     return render(request, 'products/admin_page.html', context)
@@ -138,11 +151,22 @@ def edit_product(request, product_id):
 @login_required
 def get_product(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
+    
+    # Get sizes with stock data
+    sizes_with_stock = []
+    for size_obj in product.sizes.all():
+        sizes_with_stock.append({
+            'size': size_obj.size,
+            'stock': size_obj.stock
+        })
+    
     data = {
         'product_id': product.product_id,
         'name': product.name,
+        'brand': product.brand,
+        'gender': product.gender,
         'price': product.price,
-        'sizes': product.get_sizes(),
+        'sizes': sizes_with_stock,
         'image_url': product.image_url
     }
     return JsonResponse(data)
