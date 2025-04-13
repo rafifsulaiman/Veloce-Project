@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Produk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold mb-4">Tambah Produk</h2>
+        
+        <form method="POST" enctype="multipart/form-data" id="addProductForm">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Brand</label>
+                {{ form.brand }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Nama Produk</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Product ID</label>
+                {{ form.product_id }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Harga</label>
+                {{ form.price }}
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Gender</label>
+                {{ form.gender }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Ukuran dan Stok</label>
+                <div class="mb-2">
+                    <button type="button" onclick="addSizeRow()" class="bg-green-500 hover:bg-green-700 text-white font-medium py-1 px-3 rounded text-sm">
+                        + Tambah Ukuran
+                    </button>
+                </div>
+                <table class="w-full border-collapse mb-2">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-2 text-left border text-sm">Ukuran</th>
+                            <th class="p-2 text-left border text-sm">Stok</th>
+                            <th class="p-2 text-center border text-sm" style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sizesTableBody">
+                        <!-- Size rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+                <input type="hidden" name="sizes_data" id="sizes_data">
+                <p class="text-sm text-gray-500 mt-1">Tambahkan beberapa ukuran beserta jumlah stok yang tersedia</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">URL Gambar</label>
+                {{ form.image_url }}
+            </div>
+
+            <div id="message" class="mb-4 hidden rounded-md p-4"></div>
+
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                Tambah Produk
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function addSizeRow(size = '', stock = 0) {
+            const tbody = document.getElementById('sizesTableBody');
+            const rowCount = tbody.rows.length;
+            const row = tbody.insertRow();
+            
+            // Size input
+            const sizeCell = row.insertCell(0);
+            const sizeInput = document.createElement('input');
+            sizeInput.type = 'number';
+            sizeInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md size-input';
+            sizeInput.value = size;
+            sizeInput.min = '1';
+            sizeCell.appendChild(sizeInput);
+            
+            // Stock input
+            const stockCell = row.insertCell(1);
+            const stockInput = document.createElement('input');
+            stockInput.type = 'number';
+            stockInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md stock-input';
+            stockInput.value = stock;
+            stockInput.min = '0';
+            stockCell.appendChild(stockInput);
+            
+            // Delete button
+            const actionCell = row.insertCell(2);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-sm';
+            deleteBtn.textContent = 'Hapus';
+            deleteBtn.onclick = function() { row.remove(); };
+            actionCell.appendChild(deleteBtn);
+        }
+
+        // Add at least one size row on load
+        document.addEventListener('DOMContentLoaded', function() {
+            addSizeRow();
+        });
+
+        document.getElementById("addProductForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            // Collect size and stock data
+            const sizesData = [];
+            const sizeInputs = document.querySelectorAll('.size-input');
+            const stockInputs = document.querySelectorAll('.stock-input');
+            
+            for (let i = 0; i < sizeInputs.length; i++) {
+                const size = parseInt(sizeInputs[i].value);
+                const stock = parseInt(stockInputs[i].value || 0);
+                
+                if (size) {
+                    sizesData.push({ size: size, stock: stock });
+                }
+            }
+            
+            // Add size data to hidden input
+            document.getElementById('sizes_data').value = JSON.stringify(sizesData);
+            
+            // Create FormData
+            let formData = new FormData(this);
+
+            fetch("{% url 'products:add_product' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let message = document.getElementById("message");
+                message.classList.remove('hidden');
+                
+                if (data.error) {
+                    message.textContent = data.error;
+                    message.classList.add("bg-red-100", "text-red-700");
+                    message.classList.remove("bg-green-100", "text-green-700");
+                } else {
+                    message.textContent = "Produk berhasil ditambahkan!";
+                    message.classList.add("bg-green-100", "text-green-700");
+                    message.classList.remove("bg-red-100", "text-red-700");
+                    document.getElementById("addProductForm").reset();
+                    
+                    // Clear size table and add a new empty row
+                    document.getElementById('sizesTableBody').innerHTML = '';
+                    addSizeRow();
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                let message = document.getElementById("message");
+                message.classList.remove('hidden');
+                message.textContent = "Terjadi kesalahan saat menambahkan produk.";
+                message.classList.add("bg-red-100", "text-red-700");
+            });
+        });
+    </script>
+
+</body>
+</html>

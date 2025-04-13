@@ -10,5 +10,5 @@ urlpatterns = [
     path('products/', include('products.urls')),
     path('cart/', include('cart.urls')),
     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico'))),
-    path('adminpage/', include('adminpage.urls')),
+    path('admindashboard/', include('admindashboard.urls')),
 ]

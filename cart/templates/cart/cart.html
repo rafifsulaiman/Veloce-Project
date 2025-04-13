@@ -7,38 +7,110 @@
     <h1 class="text-3xl font-bold mb-8">Your Shopping Cart</h1>
     
     <div class="bg-white rounded-lg shadow-md p-6">
-        <!-- Empty cart state -->
-        <div class="flex flex-col items-center justify-center py-12">
-            <div class="w-24 h-24 bg-primary-light rounded-full flex items-center justify-center mb-4">
-                <i class="fas fa-shopping-cart text-3xl"></i>
-            </div>
-            <h2 class="text-2xl font-semibold mb-2">Your cart is empty</h2>
-            <p class="text-gray-600 mb-8">Looks like you haven't added any products to your cart yet.</p>
-            <a href="{% url 'products:catalog' %}" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300">
-                Browse Products
-            </a>
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-blue-100 text-blue-700 border-l-4 border-blue-500{% endif %} rounded">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
+        {% endif %}
         
-        <!-- Cart items will be loaded here when implemented -->
-        <!-- Example cart item structure
-        <div class="flex items-center hover:bg-gray-100 px-6 py-5">
-            <div class="flex w-2/5">
-                <div class="w-20">
-                    <img class="h-24" src="product-image.jpg" alt="">
+        {% if cart_items %}
+            <!-- Cart Items -->
+            <div class="mb-6">
+                <div class="border-b pb-2 mb-4">
+                    <div class="grid grid-cols-12 gap-4 text-gray-500 text-sm">
+                        <div class="col-span-6">Product</div>
+                        <div class="col-span-2 text-center">Price</div>
+                        <div class="col-span-2 text-center">Quantity</div>
+                        <div class="col-span-2 text-center">Subtotal</div>
+                    </div>
                 </div>
-                <div class="flex flex-col justify-between ml-4 flex-grow">
-                    <span class="font-bold text-sm">Product Name</span>
-                    <span class="text-red-500 text-xs">Brand</span>
-                    <a href="#" class="font-semibold hover:text-red-500 text-gray-500 text-xs">Remove</a>
+                
+                {% for item in cart_items %}
+                <div class="grid grid-cols-12 gap-4 py-4 border-b items-center">
+                    <!-- Product Info -->
+                    <div class="col-span-6 flex items-center">
+                        <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                            <img src="{{ item.product.main_image }}" alt="{{ item.product.name }}" class="h-full w-full object-cover object-center" onerror="this.src='https://i.imgur.com/qCP9R4y.jpeg';">
+                        </div>
+                        <div class="ml-4 flex flex-col">
+                            <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                            <div class="text-sm text-gray-500">{{ item.product.brand }}</div>
+                            <div class="text-sm text-gray-500">Size: {{ item.size }}</div>
+                            <form action="{% url 'cart:remove_from_cart' item.id %}" method="POST" class="mt-1">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Price -->
+                    <div class="col-span-2 text-center">
+                        <span class="text-sm font-medium text-gray-900">Rp {{ item.product.price|stringformat:"i"|slice:"-3" }}.{{ item.product.price|stringformat:"i"|slice:"-3:" }}</span>
+                    </div>
+                    
+                    <!-- Quantity -->
+                    <div class="col-span-2 text-center">
+                        <div class="inline-flex items-center border border-gray-200 rounded">
+                            <form action="{% url 'cart:update_quantity' item.id %}" method="POST" class="flex">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="decrease">
+                                <button type="submit" class="px-3 py-1 text-gray-600 hover:bg-gray-100">-</button>
+                            </form>
+                            
+                            <span class="px-4 py-1 text-gray-900">{{ item.quantity }}</span>
+                            
+                            <form action="{% url 'cart:update_quantity' item.id %}" method="POST" class="flex">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="increase">
+                                <button type="submit" class="px-3 py-1 text-gray-600 hover:bg-gray-100">+</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Subtotal -->
+                    <div class="col-span-2 text-center">
+                        <span class="text-sm font-medium text-gray-900">Rp {{ item.subtotal|stringformat:"i"|slice:"-3" }}.{{ item.subtotal|stringformat:"i"|slice:"-3:" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Cart Summary -->
+            <div class="flex justify-between items-center py-4 border-t mt-6">
+                <div>
+                    <a href="{% url 'products:catalog' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Continue Shopping
+                    </a>
+                </div>
+                <div>
+                    <div class="text-lg font-medium text-gray-900 mb-2">Total: Rp {{ total|stringformat:"i"|slice:"-3" }}.{{ total|stringformat:"i"|slice:"-3:" }}</div>
+                    <a href="#" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-2 px-6 rounded-full transition duration-300 inline-block text-center">
+                        Proceed to Checkout
+                    </a>
                 </div>
             </div>
-            <div class="flex justify-center w-1/5">
-                <span class="mx-2 border text-center w-8">1</span>
+        {% else %}
+            <!-- Empty cart state -->
+            <div class="flex flex-col items-center justify-center py-12">
+                <div class="w-24 h-24 bg-primary-light rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-12 h-12 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-semibold mb-2">Your cart is empty</h2>
+                <p class="text-gray-600 mb-8">Looks like you haven't added any products to your cart yet.</p>
+                <a href="{% url 'products:catalog' %}" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-6 rounded-full transition duration-300">
+                    Browse Products
+                </a>
             </div>
-            <span class="text-center w-1/5 font-semibold text-sm">$400.00</span>
-            <span class="text-center w-1/5 font-semibold text-sm">$400.00</span>
-        </div>
-        -->
+        {% endif %}
     </div>
 </div>
 {% endblock %} 
