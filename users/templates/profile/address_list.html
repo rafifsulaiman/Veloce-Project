@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}My Addresses - Veloce{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row min-h-screen">
+    <!-- Sidebar -->
+    <div class="w-full md:w-1/4 bg-primary-light p-6">
+        <div class="flex items-center mb-8">
+            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-800">
+                {% if user.profile_pic_url %}
+                <img src="{{ user.profile_pic_url }}" alt="{{ user.username }}" class="w-12 h-12 rounded-full object-cover">
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {% endif %}
+            </div>
+            <div class="ml-3">
+                <p class="font-bold">{{ user.username }}</p>
+                <p>My Profile</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li class="mb-2">
+                    <a href="{% url 'users:profile' %}" class="block p-3 rounded-md hover:bg-white transition">
+                        Profile
+                    </a>
+                </li>
+                {% if not user.is_staff %}
+                <li class="mb-2">
+                    <a href="{% url 'users:addresses' %}" class="block p-3 rounded-md bg-white font-bold transition">
+                        Address
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="w-full md:w-3/4 p-6">
+        <h1 class="text-2xl font-bold mb-6">Daftar Alamat Saya</h1>
+        
+        {% if addresses %}
+            {% for address in addresses %}
+            <div class="border rounded-lg p-4 mb-4 bg-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center">
+                            <h3 class="font-bold text-lg">{{ address.name }}</h3>
+                            <span class="ml-2 text-sm text-white bg-blue-600 rounded-full px-2 py-0.5 {% if not address.is_main %}hidden{% endif %}">Utama</span>
+                        </div>
+                        <p class="text-gray-600 mt-1">{{ address.phone_number }}</p>
+                        <p class="mt-2">
+                            {{ address.street_address }}{% if address.rt_rw %}, RT/RW: {{ address.rt_rw }}{% endif %}<br>
+                            Kel. {{ address.village }}, Kec. {{ address.district }}<br>
+                            {{ address.city }}, {{ address.province }}, {{ address.postal_code }}
+                            {% if address.additional_info %}
+                            <br><span class="text-gray-500 text-sm mt-1">{{ address.additional_info }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <a href="{% url 'users:edit_address' address.id %}" class="text-blue-600 hover:underline">Edit</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-12 bg-white rounded-lg shadow">
+                <p class="text-gray-500">Anda belum memiliki alamat tersimpan. Tambahkan alamat baru untuk mempermudah proses pembelian.</p>
+            </div>
+        {% endif %}
+        
+        <div class="mt-8">
+            <a href="{% url 'users:add_address' %}" class="bg-primary-light hover:bg-primary text-black font-bold py-3 px-6 rounded-md transition duration-300 inline-block">
+                Tambah Alamat Baru
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
