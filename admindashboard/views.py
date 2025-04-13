@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ProductForm
+from admindashboard.forms import ProductForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Product
+from products.models import Product
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -35,7 +35,7 @@ def add_product(request):
             return redirect('products:catalog')
     else:
         form = ProductForm()
-    return render(request, 'products/add_product.html', {'form': form})
+    return render(request, 'admindashboard/add_product.html', {'form': form})
 
 @login_required
 @csrf_exempt
@@ -53,10 +53,8 @@ def edit_product(request, product_id):
             product.name = data.get('name', product.name)
             product.price = data.get('price', product.price)
             
-            # Handle size as JSON array
             sizes = data.get('sizes')
             if sizes:
-                # Convert to JSON string if it's a list
                 if isinstance(sizes, list):
                     product.size = json.dumps(sizes)
                 else:
@@ -71,35 +69,6 @@ def edit_product(request, product_id):
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': "Method Not Allowed"}, status=405)
-
-@login_required
-def get_product(request, product_id):
-    product = get_object_or_404(Product, product_id=product_id)
-    data = {
-        'product_id': product.product_id,
-        'name': product.name,
-        'price': product.price,
-        'sizes': product.get_sizes(),
-        'image_url': product.image_url
-    }
-    return JsonResponse(data)
-
-def get_product_data(request):
-    products = Product.objects.all()
-    product_list = []
-    
-    for product in products:
-        product_list.append({
-            'product_id': product.product_id,
-            'brand': product.brand,
-            'name': product.name,
-            'price': product.price,
-            'sizes': product.get_sizes(),
-            'image_url': product.main_image()
-        })
-    
-    return JsonResponse({'products': product_list})
-
 @login_required
 def delete_product(request, product_id):
     if not request.user.is_staff:

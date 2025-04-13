@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'products',
     'cart',
     'home',
-    'admin',
+    'admindashboard',
 ]
 
 MIDDLEWARE = [

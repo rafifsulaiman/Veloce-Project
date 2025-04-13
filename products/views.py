@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ProductForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Product
@@ -41,7 +40,6 @@ def product_catalog(request):
     # Convert to sorted list
     sizes = sorted(list(all_sizes))
     
-    # Prepare context with basic information
     context = {
         'products': products,
         'brands': brands,
@@ -50,11 +48,10 @@ def product_catalog(request):
         'selected_size': size_filter,
     }
     
-    # Add information about whether user is an admin
     if request.user.is_authenticated:
         context['is_admin'] = request.user.is_staff
     
-    return render(request, 'products/catalog.html', context)
+    return render(request, 'catalog.html', context)
 
 @login_required
 def product_detail(request, product_id):
@@ -65,88 +62,10 @@ def product_detail(request, product_id):
             'images': product.get_images(),
             'is_admin': request.user.is_staff
         }
-        return render(request, 'products/product_detail.html', context)
+        return render(request, 'product_detail.html', context)
     except Product.DoesNotExist:
         messages.error(request, "Produk tidak ditemukan")
         return redirect('products:catalog')
-    
-@login_required
-def admin_page(request):
-    if not request.user.is_staff:
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
-    
-    products = Product.objects.all()
-    
-    # Calculate statistics for dashboard
-    total_stock = sum(size.stock for product in products for size in product.sizes.all())
-    brands_count = products.values('brand').distinct().count()
-    
-    # Get unique sizes count
-    sizes = set()
-    for product in products:
-        sizes.update(product.get_sizes())
-    sizes_count = len(sizes)
-    
-    context = {
-        'products': products,
-        'total_stock': total_stock,
-        'brands_count': brands_count,
-        'sizes_count': sizes_count
-    }
-    
-    return render(request, 'products/admin_page.html', context)
-    
-@login_required
-def add_product(request):
-    if not request.user.is_staff:
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
-    
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Produk berhasil ditambahkan.")
-            return redirect('products:catalog')
-    else:
-        form = ProductForm()
-    return render(request, 'products/add_product.html', {'form': form})
-
-@login_required
-@csrf_exempt
-def edit_product(request, product_id):
-    if not request.user.is_staff:
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
-
-    product = get_object_or_404(Product, product_id=product_id)
-
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            
-            product.name = data.get('name', product.name)
-            product.price = data.get('price', product.price)
-            
-            # Handle size as JSON array
-            sizes = data.get('sizes')
-            if sizes:
-                # Convert to JSON string if it's a list
-                if isinstance(sizes, list):
-                    product.size = json.dumps(sizes)
-                else:
-                    product.size = sizes
-                    
-            product.image_url = data.get('image_url', product.image_url)
-
-            product.save()
-            return JsonResponse({'message': "Produk berhasil diubah."})
-
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-    return JsonResponse({'error': "Method Not Allowed"}, status=405)
 
 @login_required
 def get_product(request, product_id):
@@ -186,14 +105,3 @@ def get_product_data(request):
         })
     
     return JsonResponse({'products': product_list})
-
-@login_required
-def delete_product(request, product_id):
-    if not request.user.is_staff:
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
-    
-    product = get_object_or_404(Product, product_id=product_id)
-    product.delete()
-    messages.success(request, f"Produk {product.name} berhasil dihapus.")
-    return redirect('products:admin_page')
