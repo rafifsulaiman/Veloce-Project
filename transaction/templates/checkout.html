@@ -25,6 +25,7 @@
             
             <form method="POST" action="{% url 'transaction:checkout' %}">
                 {% csrf_token %}
+                {{ form.payment_method }}
                 
                 <div class="grid grid-cols-1 gap-6">
                     <div>
@@ -53,21 +54,18 @@
                         </div>
                     </div>
                     
-                    <div>
-                        <label for="id_payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                        {{ form.payment_method }}
-                        {% if form.payment_method.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.payment_method.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div>
-                        <label for="id_delivery_price" class="block text-sm font-medium text-gray-700 mb-1">Delivery Price</label>
-                        {{ form.delivery_price }}
-                        {% if form.delivery_price.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.delivery_price.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-xs text-gray-500 mt-1">Enter 0 for free shipping</p>
+                    <!-- Payment Method -->
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-medium mb-2">Payment Method</h3>
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="font-medium">VelocePay</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Pembayaran aman menggunakan VelocePay</p>
                     </div>
                     
                     <div class="flex justify-end mt-6">
@@ -93,7 +91,7 @@
                         <div class="ml-4 flex-1">
                             <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
                             <p class="text-xs text-gray-500">Size: {{ item.size }} | Qty: {{ item.quantity }}</p>
-                            <p class="text-sm font-medium text-gray-900 mt-1">Rp {{ item.subtotal|stringformat:"i"|slice:"-3" }}.{{ item.subtotal|stringformat:"i"|slice:"-3:" }}</p>
+                            <p class="text-sm font-medium text-gray-900 mt-1">Rp {{ item.subtotal|floatformat:"0"|stringformat:"s"|slice:"-3:" }}</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -102,18 +100,18 @@
                 <div class="border-t border-gray-200 py-4">
                     <div class="flex justify-between text-base font-medium text-gray-900">
                         <p>Subtotal</p>
-                        <p>Rp {{ cart_total|stringformat:"i"|slice:"-3" }}.{{ cart_total|stringformat:"i"|slice:"-3:" }}</p>
+                        <p>Rp {{ cart_total|floatformat:"0" }}</p>
                     </div>
                     <div class="flex justify-between text-sm text-gray-500 mt-1">
                         <p>Shipping</p>
-                        <p>To be calculated</p>
+                        <p>Rp {{ delivery_price|floatformat:"0" }}</p>
                     </div>
                 </div>
                 
                 <div class="border-t border-gray-200 py-4">
                     <div class="flex justify-between text-lg font-bold">
                         <p>Total</p>
-                        <p>Rp {{ cart_total|stringformat:"i"|slice:"-3" }}.{{ cart_total|stringformat:"i"|slice:"-3:" }} + shipping</p>
+                        <p>Rp {{ total_with_delivery|floatformat:"0" }}</p>
                     </div>
                 </div>
                 

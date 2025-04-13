@@ -20,6 +20,8 @@
         <span class="px-4 py-1 rounded-full text-sm font-medium
             {% if transaction.status == 'paid' and transaction.shipping_status == 'delivered' %}
                 bg-green-100 text-green-800
+            {% elif transaction.status == 'processing' %}
+                bg-blue-100 text-blue-800
             {% elif transaction.status == 'failed' or transaction.shipping_status == 'cancelled' %}
                 bg-red-100 text-red-800
             {% else %}
@@ -28,6 +30,28 @@
             {{ transaction.current_status }}
         </span>
     </div>
+    
+    {% if transaction.status == 'pending' %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    Pesanan Anda menunggu pembayaran. Silakan klik tombol di bawah untuk melanjutkan pembayaran.
+                </p>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{{ transaction.payment_url }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+                Lakukan Pembayaran
+            </a>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Order Info Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -48,7 +72,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">Payment Status:</span>
-                    <span class="{% if transaction.status == 'paid' %}text-green-600{% elif transaction.status == 'failed' %}text-red-600{% else %}text-yellow-600{% endif %}">
+                    <span class="{% if transaction.status == 'paid' %}text-green-600{% elif transaction.status == 'processing' %}text-blue-600{% elif transaction.status == 'failed' %}text-red-600{% else %}text-yellow-600{% endif %}">
                         {{ transaction.get_status_display }}
                     </span>
                 </div>
@@ -124,13 +148,13 @@
                             {{ item.size }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Rp {{ item.product_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ item.product_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                            Rp {{ item.product_price|floatformat:"0" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ item.quantity }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            Rp {{ item.subtotal|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ item.subtotal|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                            Rp {{ item.subtotal|floatformat:"0" }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -141,7 +165,7 @@
                             Product Total:
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            Rp {{ transaction.product_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.product_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                            Rp {{ transaction.product_price|floatformat:"0" }}
                         </td>
                     </tr>
                     <tr>
@@ -149,7 +173,7 @@
                             Delivery Fee:
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            Rp {{ transaction.delivery_price|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.delivery_price|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                            Rp {{ transaction.delivery_price|floatformat:"0" }}
                         </td>
                     </tr>
                     <tr>
@@ -157,7 +181,7 @@
                             Total:
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
-                            Rp {{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                            Rp {{ transaction.transaction_amount|floatformat:"0" }}
                         </td>
                     </tr>
                 </tfoot>

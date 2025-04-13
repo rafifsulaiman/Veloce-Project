@@ -5,24 +5,22 @@ from products.models import Product
 
 class Transaction(models.Model):
     PAYMENT_STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('paid', 'Paid'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
+        ('pending', 'Menunggu Pembayaran'),
+        ('paid', 'Pembayaran Berhasil'),
+        ('processing', 'Pesanan Diproses'),
+        ('failed', 'Pembayaran Gagal'),
+        ('cancelled', 'Dibatalkan'),
     ]
     
     SHIPPING_STATUS_CHOICES = [
-        ('processing', 'Processing'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
+        ('processing', 'Diproses'),
+        ('shipped', 'Dikirim'),
+        ('delivered', 'Diterima'),
+        ('cancelled', 'Dibatalkan'),
     ]
     
     PAYMENT_CHOICES = [
-        ('bank_transfer', 'Bank Transfer'),
-        ('credit_card', 'Credit Card'),
-        ('cash_on_delivery', 'Cash on Delivery'),
-        ('e_wallet', 'E-Wallet'),
+        ('velocepay', 'VelocePay'),
     ]
     
     # Fields based on ER Diagram
@@ -30,7 +28,7 @@ class Transaction(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     transaction_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    delivery_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    delivery_price = models.DecimalField(max_digits=10, decimal_places=2, default=25000)  # Fixed at Rp 25.000
     
     # Additional fields for shipping and user information
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -38,7 +36,8 @@ class Transaction(models.Model):
     shipping_address = models.TextField()
     shipping_city = models.CharField(max_length=100)
     shipping_postal_code = models.CharField(max_length=20)
-    payment_method = models.CharField(max_length=50, choices=PAYMENT_CHOICES)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_CHOICES, default='velocepay')
+    payment_url = models.CharField(max_length=255, blank=True, null=True)  # URL untuk pembayaran VelocePay
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
@@ -51,19 +50,16 @@ class Transaction(models.Model):
     
     @property
     def current_status(self):
-        if self.status == 'failed':
-            return 'Failed'
-        elif self.status == 'pending':
-            return 'Pending Payment'
-        elif self.shipping_status == 'processing':
-            return 'Processing'
-        elif self.shipping_status == 'shipped':
-            return 'Shipped'
-        elif self.shipping_status == 'delivered':
-            return 'Delivered'
-        elif self.shipping_status == 'cancelled':
-            return 'Cancelled'
-        return 'Unknown'
+        """Get current status for display"""
+        return self.get_status_display()
+    
+    def process_payment(self):
+        """Mark transaction as paid and update status"""
+        if self.status == 'pending':
+            self.status = 'processing'
+            self.save()
+            return True
+        return False
 
 class OrderItem(models.Model):
     transaction = models.ForeignKey(Transaction, related_name='items', on_delete=models.CASCADE)

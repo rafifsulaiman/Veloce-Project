@@ -4,7 +4,8 @@ from .views import (
     checkout_confirm,
     transaction_success,
     order_history,
-    order_detail
+    order_detail,
+    process_payment
 )
 
 app_name = 'transaction'
@@ -15,4 +16,5 @@ urlpatterns = [
     path('success/<str:transaction_id>/', transaction_success, name='success'),
     path('orders/', order_history, name='order_history'),
     path('orders/<str:transaction_id>/', order_detail, name='order_detail'),
+    path('payment/<str:transaction_id>/', process_payment, name='process_payment'),
 ]

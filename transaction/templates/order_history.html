@@ -39,12 +39,14 @@
                                 {{ transaction.date_created|date:"F j, Y" }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                Rp {{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3" }}.{{ transaction.transaction_amount|floatformat:"0"|stringformat:"i"|slice:"-3:" }}
+                                Rp {{ transaction.transaction_amount|floatformat:"0" }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                     {% if transaction.status == 'paid' and transaction.shipping_status == 'delivered' %}
                                         bg-green-100 text-green-800
+                                    {% elif transaction.status == 'processing' %}
+                                        bg-blue-100 text-blue-800
                                     {% elif transaction.status == 'failed' or transaction.shipping_status == 'cancelled' %}
                                         bg-red-100 text-red-800
                                     {% else %}
@@ -54,9 +56,16 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <a href="{% url 'transaction:order_detail' transaction.transaction_id %}" class="text-primary hover:text-primary-dark">
-                                    View Details
-                                </a>
+                                <div class="flex items-center space-x-3">
+                                    <a href="{% url 'transaction:order_detail' transaction.transaction_id %}" class="text-primary hover:text-primary-dark">
+                                        View Details
+                                    </a>
+                                    {% if transaction.status == 'pending' %}
+                                    <a href="{{ transaction.payment_url }}" class="px-3 py-1 bg-blue-600 text-white rounded-full text-xs hover:bg-blue-700">
+                                        Bayar
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
