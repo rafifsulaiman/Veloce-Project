@@ -53,6 +53,11 @@ class Product(models.Model):
             return images[0]
         return self.image_url
     
+    @property
+    def has_low_stock(self):
+        """Check if any size has low stock (5 or less)"""
+        return self.sizes.filter(stock__lte=5).exists()
+    
     def __str__(self):
         sizes = self.get_sizes()
         size_range = f"Sizes {min(sizes)}-{max(sizes)}" if sizes else "No sizes"

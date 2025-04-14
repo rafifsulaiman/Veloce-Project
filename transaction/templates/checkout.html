@@ -91,7 +91,7 @@
                         <div class="ml-4 flex-1">
                             <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
                             <p class="text-xs text-gray-500">Size: {{ item.size }} | Qty: {{ item.quantity }}</p>
-                            <p class="text-sm font-medium text-gray-900 mt-1">Rp {{ item.subtotal|floatformat:"0"|stringformat:"s"|slice:"-3:" }}</p>
+                            <p class="text-sm font-medium text-gray-900 mt-1">Rp {{ item.subtotal|floatformat:"0" }}</p>
                         </div>
                     </div>
                     {% endfor %}

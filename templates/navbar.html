@@ -76,6 +76,16 @@
                             </div>
                         </a>
                         {% endif %}
+                        {% if user.is_staff %}
+                        <a href="{% url 'admindashboard:admin_transaction_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Manage Transactions
+                            </div>
+                        </a>
+                        {% endif %}
                         <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,6 +146,11 @@
                 {% if not user.is_staff %}
                 <a href="{% url 'users:addresses' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
                     My Addresses
+                </a>
+                {% endif %}
+                {% if user.is_staff %}
+                <a href="{% url 'admindashboard:admin_transaction_list' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                    Manage Transactions
                 </a>
                 {% endif %}
                 <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
