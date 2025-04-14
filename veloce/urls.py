@@ -12,6 +12,5 @@ urlpatterns = [
     path('transaction/', include('transaction.urls')),
     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico'))),
     path('admindashboard/', include('admindashboard.urls')),
-    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path("accounts/", include("allauth.urls")),
 ]

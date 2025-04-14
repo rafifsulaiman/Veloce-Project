@@ -5,3 +5,7 @@ psycopg2-binary
 requests
 urllib3
 python-dotenv
+pyjwt
+django-allauth
+django-ratelimit
+oauth2_provider
