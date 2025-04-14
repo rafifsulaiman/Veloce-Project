@@ -205,7 +205,7 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'home:index'
 ACCOUNT_LOGOUT_REDIRECT_URL = 'login'
-SESSION_EXPIRE_SECONDS = 10  # Set session timeout to 1/2 hour
+SESSION_EXPIRE_SECONDS = 1800  # Set session timeout to 1/2 hour
 
 LOGGING = {
     'version': 1,

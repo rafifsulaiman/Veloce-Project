@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import CustomUser, Address
 from django.conf import settings
 import logging
+from django_ratelimit.decorators import ratelimit
 
 # Create your views here.
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'register.html', {'form': form})
 
+@ratelimit(key='user_or_ip', rate='10/m')
 def user_login(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
