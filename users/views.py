@@ -85,7 +85,6 @@ def edit_profile(request):
         # Update user data
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
         phone_number = request.POST.get('phone_number')
         gender = request.POST.get('gender')
         profile_pic_url = request.POST.get('profile_pic_url')
@@ -95,8 +94,6 @@ def edit_profile(request):
             user.first_name = first_name
         if last_name:
             user.last_name = last_name
-        if email:
-            user.email = email
         if phone_number:
             user.phone_number = phone_number
         if gender:
