@@ -1,51 +1,171 @@
-from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import CustomUserCreationForm, UserRegisterForm, UserLoginForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from .models import CustomUser, Address
 
 # Create your views here.
 
 def register(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            admin_code = form.cleaned_data.get('admin_code')
-            if admin_code == "PKPLASIK37":  
-                user.is_admin = True
-                user.is_staff = True
-                
-            user.save()
-            login(request, user)
-            return redirect('home:index')  
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}! You can now log in.')
+            return redirect('users:login')
     else:
-        form = CustomUserCreationForm()
-    return render(request, 'users/register.html', {'form': form})
+        form = UserRegisterForm()
+    return render(request, 'register.html', {'form': form})
 
 def user_login(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = UserLoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f"Berhasil login sebagai {username}")
-                if user.is_staff:
-                    return redirect('products:admin_page')  # Redirect admin to admin page
-                else:
-                    return redirect('products:catalog')  # Redirect regular user to catalog
+                messages.success(request, f'Welcome, {username}!')
+                return redirect('home:index')
             else:
-                messages.error(request, "Username atau password salah.")
-        else:
-            messages.error(request, "Username atau password salah.")
+                messages.error(request, 'Invalid username or password.')
     else:
-        form = AuthenticationForm()
-    return render(request, 'users/login.html', {'form': form})
+        form = UserLoginForm()
+    return render(request, 'login.html', {'form': form})
 
+@login_required
 def user_logout(request):
     logout(request)
-    messages.success(request, "Berhasil logout.")
-    return redirect('users:login')
+    messages.success(request, 'You have been logged out.')
+    return redirect('home:index')
+
+@login_required
+def profile_view(request):
+    user = request.user
+    context = {
+        'user': user
+    }
+    return render(request, 'profile/profile.html', context)
+
+@login_required
+def edit_profile(request):
+    user = request.user
+    if request.method == 'POST':
+        # Update user data
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number')
+        gender = request.POST.get('gender')
+        profile_pic_url = request.POST.get('profile_pic_url')
+        
+        # Only update if values provided
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if email:
+            user.email = email
+        if phone_number:
+            user.phone_number = phone_number
+        if gender:
+            user.gender = gender
+        if profile_pic_url:
+            user.profile_pic_url = profile_pic_url
+        
+        user.save()
+        messages.success(request, 'Your profile has been updated successfully.')
+        return redirect('users:profile')
+    
+    context = {
+        'user': user
+    }
+    return render(request, 'profile/edit_profile.html', context)
+
+@login_required
+def address_list(request):
+    addresses = Address.objects.filter(user=request.user)
+    context = {
+        'addresses': addresses
+    }
+    return render(request, 'profile/address_list.html', context)
+
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        phone_number = request.POST.get('phone_number')
+        street_address = request.POST.get('street_address')
+        rt_rw = request.POST.get('rt_rw')
+        village = request.POST.get('village')
+        district = request.POST.get('district')
+        city = request.POST.get('city')
+        province = request.POST.get('province')
+        postal_code = request.POST.get('postal_code')
+        additional_info = request.POST.get('additional_info')
+        is_main = request.POST.get('is_main') == 'Yes'
+        
+        # Create new address
+        new_address = Address(
+            user=request.user,
+            name=name,
+            phone_number=phone_number,
+            street_address=street_address,
+            rt_rw=rt_rw,
+            village=village,
+            district=district,
+            city=city,
+            province=province,
+            postal_code=postal_code,
+            additional_info=additional_info,
+            is_main=is_main
+        )
+        new_address.save()
+        
+        messages.success(request, 'Alamat baru berhasil ditambahkan.')
+        return redirect('users:addresses')
+    
+    return render(request, 'profile/add_address.html')
+
+@login_required
+def edit_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        phone_number = request.POST.get('phone_number')
+        street_address = request.POST.get('street_address')
+        rt_rw = request.POST.get('rt_rw')
+        village = request.POST.get('village')
+        district = request.POST.get('district')
+        city = request.POST.get('city')
+        province = request.POST.get('province')
+        postal_code = request.POST.get('postal_code')
+        additional_info = request.POST.get('additional_info')
+        is_main = request.POST.get('is_main') == 'Yes'
+        
+        # Update address
+        address.name = name
+        address.phone_number = phone_number
+        address.street_address = street_address
+        address.rt_rw = rt_rw
+        address.village = village
+        address.district = district
+        address.city = city
+        address.province = province
+        address.postal_code = postal_code
+        address.additional_info = additional_info
+        address.is_main = is_main
+        address.save()
+        
+        messages.success(request, 'Alamat berhasil diperbarui.')
+        return redirect('users:addresses')
+    
+    context = {
+        'address': address
+    }
+    return render(request, 'profile/edit_address.html', context)
