@@ -3,8 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CartItem
 from products.models import Product, ProductSize
+from django_ratelimit.decorators import ratelimit
+
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m')
 def cart_view(request):
     """
     View for displaying the user's shopping cart
@@ -25,6 +28,7 @@ def cart_view(request):
     return render(request, 'cart/cart.html', context)
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m')
 def add_to_cart(request, product_id):
     """Add a product to the user's cart"""
     if request.user.is_staff:
