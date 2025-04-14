@@ -5,7 +5,9 @@ from .models import Product
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.decorators import ratelimit
 
+@ratelimit(key='user_or_ip', rate='10/m')
 def product_catalog(request):
     # Get all products
     products = Product.objects.all()
@@ -14,6 +16,11 @@ def product_catalog(request):
     brand_filter = request.GET.get('brand')
     if brand_filter:
         products = products.filter(brand=brand_filter)
+    
+    # Filter by gender if parameter exists
+    gender_filter = request.GET.get('gender')
+    if gender_filter:
+        products = products.filter(gender=gender_filter)
     
     # Filter by size if parameter exists
     size_filter = request.GET.get('size')
@@ -27,8 +34,9 @@ def product_catalog(request):
         
         products = products.filter(product_id__in=filtered_products)
     
-    # Get list of brands for filter
-    brands = Product.objects.values_list('brand', flat=True).distinct()
+    # Get list of brands for filter - fix duplicates by converting to set and then sorted list
+    brands_raw = Product.objects.values_list('brand', flat=True)
+    brands = sorted(set(brands_raw))
     
     # Get all possible sizes for filter
     all_sizes = set()
@@ -45,6 +53,7 @@ def product_catalog(request):
         'brands': brands,
         'sizes': sizes,
         'selected_brand': brand_filter,
+        'selected_gender': gender_filter,
         'selected_size': size_filter,
     }
     
@@ -54,6 +63,7 @@ def product_catalog(request):
     return render(request, 'catalog.html', context)
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m')
 def product_detail(request, product_id):
     try:
         product = Product.objects.get(product_id=product_id)
@@ -68,6 +78,7 @@ def product_detail(request, product_id):
         return redirect('products:catalog')
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m')
 def get_product(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     
