@@ -5,9 +5,11 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import CustomUser, Address
+from django.conf import settings
+import logging
 
 # Create your views here.
-
+logger = logging.getLogger(__name__)
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -39,9 +41,30 @@ def user_login(request):
 
 @login_required
 def user_logout(request):
+    # Simpan session key sebelum logout untuk keperluan validasi/log
+    current_session_key = request.session.session_key
+    if current_session_key:
+        logger.debug("Session key sebelum logout: %s", current_session_key)
+    else:
+        logger.debug("Tidak ada session key sebelum logout (mungkin sudah expired)")
+
+    # Lakukan logout (session akan di-flush)
     logout(request)
+    
+    # Setelah logout, session di-flush sehingga session key akan None atau berbeda
+    if request.session.session_key is None:
+        logger.debug("Session key setelah logout: None (session telah di-flush)")
+    else:
+        logger.warning("Session key setelah logout masih ada: %s", request.session.session_key)
+    
     messages.success(request, 'You have been logged out.')
-    return redirect('home:index')
+    response = redirect('home:index')
+    
+    # Hapus cookie session secara eksplisit (default cookie: 'sessionid' kecuali Anda menyetel SESSION_COOKIE_NAME)
+    response.delete_cookie(settings.SESSION_COOKIE_NAME)
+    
+    logger.debug("User logged out and session cookie deleted. Session key sebelum logout: %s", current_session_key)
+    return response
 
 @login_required
 def profile_view(request):
@@ -169,3 +192,6 @@ def edit_address(request, address_id):
         'address': address
     }
     return render(request, 'profile/edit_address.html', context)
+
+def timer_page(request):
+    return render(request, 'timer.html')

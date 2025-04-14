@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
 
 {% block title %}Register - Veloce{% endblock %}
 
@@ -16,7 +17,7 @@
                    {% if form.username.value %}value="{{ form.username.value }}"{% endif %} 
                    placeholder="Enter your username" required>
             {% if form.username.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.username.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -30,7 +31,7 @@
                    class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary" 
                    placeholder="Enter your password" required>
             {% if form.password1.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.password1.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -47,7 +48,7 @@
                    class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary" 
                    placeholder="Confirm your password" required>
             {% if form.password2.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.password2.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -62,7 +63,7 @@
                    {% if form.first_name.value %}value="{{ form.first_name.value }}"{% endif %} 
                    placeholder="Enter your first name" required>
             {% if form.first_name.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.first_name.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -77,7 +78,7 @@
                    {% if form.last_name.value %}value="{{ form.last_name.value }}"{% endif %} 
                    placeholder="Enter your last name" required>
             {% if form.last_name.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.last_name.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -92,7 +93,7 @@
                    {% if form.email.value %}value="{{ form.email.value }}"{% endif %} 
                    placeholder="Enter your email address" required>
             {% if form.email.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.email.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -107,7 +108,7 @@
                    {% if form.admin_code.value %}value="{{ form.admin_code.value }}"{% endif %}
                    placeholder="Enter admin code if you have one">
             {% if form.admin_code.errors %}
-                <ul class="text-red-600 text-sm list-none p-0 mt-1">
+                <ul class="error-messages text-red-600 text-sm list-none p-0 mt-1">
                     {% for error in form.admin_code.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -122,9 +123,34 @@
             REGISTER
         </button>
     </form>
-    
+    <div class="media-options mt-6 text-center">
+        <a href="{% provider_login_url 'google' process='signup' %}" class="field google">
+            <i class="fa-brands fa-google googleicon"></i>
+            <span>Signup with Google</span>
+        </a>
+    </div>
     <div class="mt-6 text-center">
         Already have an account? <a href="{% url 'users:login' %}" class="font-bold text-black">Login here</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Muat DOMPurify dari CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js" 
+        integrity="sha512-4JSUgkCIyPsyTpARVhaDY1rdO36Suw95M/tt3J4Q1lQkBzLnSB6x6et6Xg1Lr7dkFU32LTsoOQvGlSvyHkM28w==" 
+        crossorigin="anonymous"></script>
+
+<script>
+    // Contoh penggunaan DOMPurify untuk mensanitasi konten error/notifikasi pada form register
+    (function() {
+        // Pilih semua elemen error pesan berdasarkan class yang diberikan (misalnya 'error-messages')
+        const errorContainers = document.querySelectorAll('.error-messages');
+        errorContainers.forEach(function(container) {
+            const rawHTML = container.innerHTML;
+            const cleanHTML = DOMPurify.sanitize(rawHTML);
+            container.innerHTML = cleanHTML;
+        });
+    })();
+</script>
 {% endblock %}

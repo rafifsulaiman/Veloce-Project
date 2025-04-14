@@ -50,6 +50,12 @@ INSTALLED_APPS = [
     'home',
     'admindashboard',
     'transaction',
+    'oauth2_provider',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -58,9 +64,24 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    'users.middlewares.AutoLogoutMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'allauth.account.middleware.AccountMiddleware',
+    # "django_session_timeout.middleware.SessionTimeoutMiddleware",
 ]
+
+OAUTH2_PROVIDER = {
+    # Token akses akan kedaluwarsa setelah 10 jam (36000 detik)
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+    # Kode otorisasi kedaluwarsa setelah 5 menit (300 detik)
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 300,
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.OAuthLibCore',
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope'
+    },
+}
 
 ROOT_URLCONF = "veloce.urls"
 
@@ -130,6 +151,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SITE_ID = 1
+
 AUTH_USER_MODEL = 'users.CustomUser'
 
 
@@ -162,3 +185,53 @@ LOGIN_URL = '/login/'
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
 CORS_ALLOWED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '856796458299-etqs7r1ro5d028qmvmmijthovv4n30gp.apps.googleusercontent.com',
+            'secret': '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',
+            'key': ''
+        }
+    }
+}
+SOCIALACCOUNT_ADAPTER = 'users.adapters.MySocialAccountAdapter'
+ACCOUNT_EMAIL_REQUIRED = True
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'home:index'
+ACCOUNT_LOGOUT_REDIRECT_URL = 'login'
+SESSION_EXPIRE_SECONDS = 10  # Set session timeout to 1/2 hour
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+        },
+    },
+    'root': {  # Mengatur logger default untuk aplikasi
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        # Logger khusus untuk Django
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Logger khusus untuk modul Anda, misal pada modul users
+        'users': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
