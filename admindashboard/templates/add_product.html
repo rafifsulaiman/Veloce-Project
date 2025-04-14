@@ -55,7 +55,7 @@
                         </tr>
                     </thead>
                     <tbody id="sizesTableBody">
-                        <!-- Size rows will be added here by JavaScript -->
+                        <!-- Baris untuk ukuran akan ditambahkan oleh JavaScript -->
                     </tbody>
                 </table>
                 <input type="hidden" name="sizes_data" id="sizes_data">
@@ -75,13 +75,17 @@
         </form>
     </div>
 
+    <!-- Muat DOMPurify dari CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js" 
+            integrity="sha512-4JSUgkCIyPsyTpARVhaDY1rdO36Suw95M/tt3J4Q1lQkBzLnSB6x6et6Xg1Lr7dkFU32LTsoOQvGlSvyHkM28w==" 
+            crossorigin="anonymous"></script>
+
     <script>
         function addSizeRow(size = '', stock = 0) {
             const tbody = document.getElementById('sizesTableBody');
-            const rowCount = tbody.rows.length;
             const row = tbody.insertRow();
             
-            // Size input
+            // Input ukuran (tipe number)
             const sizeCell = row.insertCell(0);
             const sizeInput = document.createElement('input');
             sizeInput.type = 'number';
@@ -90,7 +94,7 @@
             sizeInput.min = '1';
             sizeCell.appendChild(sizeInput);
             
-            // Stock input
+            // Input stok (tipe number)
             const stockCell = row.insertCell(1);
             const stockInput = document.createElement('input');
             stockInput.type = 'number';
@@ -99,7 +103,7 @@
             stockInput.min = '0';
             stockCell.appendChild(stockInput);
             
-            // Delete button
+            // Tombol hapus baris
             const actionCell = row.insertCell(2);
             const deleteBtn = document.createElement('button');
             deleteBtn.type = 'button';
@@ -109,15 +113,22 @@
             actionCell.appendChild(deleteBtn);
         }
 
-        // Add at least one size row on load
+        // Tambahkan minimal satu baris ukuran saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
             addSizeRow();
         });
 
+        // Event listener untuk submit form
         document.getElementById("addProductForm").addEventListener("submit", function(event) {
             event.preventDefault();
             
-            // Collect size and stock data
+            // Sanitasi nilai pada setiap input (hanya menyasar elemen yang ada dalam form)
+            const inputs = this.querySelectorAll('input[type="text"], input[type="number"], textarea');
+            inputs.forEach(function(input) {
+                input.value = DOMPurify.sanitize(input.value);
+            });
+            
+            // Kumpulkan data ukuran dan stok
             const sizesData = [];
             const sizeInputs = document.querySelectorAll('.size-input');
             const stockInputs = document.querySelectorAll('.stock-input');
@@ -131,10 +142,10 @@
                 }
             }
             
-            // Add size data to hidden input
+            // Masukkan data ukuran ke input tersembunyi
             document.getElementById('sizes_data').value = JSON.stringify(sizesData);
             
-            // Create FormData
+            // Buat FormData dari form
             let formData = new FormData(this);
 
             fetch("{% url 'products:add_product' %}", {
@@ -150,16 +161,18 @@
                 message.classList.remove('hidden');
                 
                 if (data.error) {
-                    message.textContent = data.error;
+                    // Sanitasi pesan error sebelum ditampilkan
+                    message.innerHTML = DOMPurify.sanitize(data.error);
                     message.classList.add("bg-red-100", "text-red-700");
                     message.classList.remove("bg-green-100", "text-green-700");
                 } else {
-                    message.textContent = "Produk berhasil ditambahkan!";
+                    // Sanitasi pesan success sebelum ditampilkan
+                    message.innerHTML = DOMPurify.sanitize("Produk berhasil ditambahkan!");
                     message.classList.add("bg-green-100", "text-green-700");
                     message.classList.remove("bg-red-100", "text-red-700");
                     document.getElementById("addProductForm").reset();
                     
-                    // Clear size table and add a new empty row
+                    // Bersihkan tabel ukuran dan tambahkan satu baris kosong baru
                     document.getElementById('sizesTableBody').innerHTML = '';
                     addSizeRow();
                 }
@@ -168,7 +181,7 @@
                 console.error("Error:", error);
                 let message = document.getElementById("message");
                 message.classList.remove('hidden');
-                message.textContent = "Terjadi kesalahan saat menambahkan produk.";
+                message.innerHTML = DOMPurify.sanitize("Terjadi kesalahan saat menambahkan produk.");
                 message.classList.add("bg-red-100", "text-red-700");
             });
         });

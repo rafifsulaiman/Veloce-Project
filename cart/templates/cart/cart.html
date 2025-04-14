@@ -114,3 +114,20 @@
     </div>
 </div>
 {% endblock %} 
+
+{% block scripts %}
+<!-- Muat DOMPurify dari CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js"
+        integrity="sha512-4JSUgkCIyPsyTpARVhaDY1rdO36Suw95M/tt3J4Q1lQkBzLnSB6x6et6Xg1Lr7dkFU32LTsoOQvGlSvyHkM28w=="
+        crossorigin="anonymous"></script>
+
+<script>
+  // Sanitasi konten notifikasi yang ditampilkan ke pengguna
+  (function() {
+      const notificationsEl = document.getElementById('notifications');
+      if (notificationsEl) {
+          notificationsEl.innerHTML = DOMPurify.sanitize(notificationsEl.innerHTML);
+      }
+  })();
+</script>
+{% endblock %}

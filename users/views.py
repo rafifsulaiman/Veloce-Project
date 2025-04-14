@@ -11,6 +11,7 @@ from django_ratelimit.decorators import ratelimit
 
 # Create your views here.
 logger = logging.getLogger(__name__)
+@ratelimit(key='user_or_ip', rate='10/m')
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -69,6 +70,7 @@ def user_logout(request):
     return response
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m')
 def profile_view(request):
     user = request.user
     context = {
