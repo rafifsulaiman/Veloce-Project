@@ -137,7 +137,7 @@
             // Create FormData
             let formData = new FormData(this);
 
-            fetch("{% url 'products:add_product' %}", {
+            fetch("{% url 'admindashboard:add_product' %}", {
                 method: "POST",
                 body: formData,
                 headers: {

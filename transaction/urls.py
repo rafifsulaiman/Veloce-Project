@@ -5,12 +5,13 @@ from .views import (
     transaction_success,
     order_history,
     order_detail,
-    process_payment
+    process_payment,
 )
 
 app_name = 'transaction'
 
 urlpatterns = [
+    # Customer facing URLs
     path('checkout/', checkout_view, name='checkout'),
     path('checkout/confirm/', checkout_confirm, name='checkout_confirm'),
     path('success/<str:transaction_id>/', transaction_success, name='success'),

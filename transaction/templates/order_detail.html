@@ -1,204 +1,177 @@
 {% extends 'base.html' %}
 
-{% block title %}Order Details - Veloce{% endblock %}
+{% block title %}Order Detail #{{ transaction.transaction_id }} - Veloce{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Breadcrumb -->
+<div class="max-w-7xl mx-auto px-4 py-12">
     <div class="mb-6">
-        <ol class="flex items-center space-x-2 text-sm">
-            <li><a href="{% url 'products:catalog' %}" class="text-primary-dark hover:underline">Home</a></li>
-            <li><span class="text-gray-500 mx-2">/</span></li>
-            <li><a href="{% url 'transaction:order_history' %}" class="text-primary-dark hover:underline">Orders</a></li>
-            <li><span class="text-gray-500 mx-2">/</span></li>
-            <li class="font-medium">{{ transaction.transaction_id }}</li>
-        </ol>
+        <a href="{% url 'transaction:order_history' %}" class="inline-flex items-center text-gray-700 hover:text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back to Order History
+        </a>
     </div>
-    
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Order Details</h1>
-        <span class="px-4 py-1 rounded-full text-sm font-medium
-            {% if transaction.status == 'paid' and transaction.shipping_status == 'delivered' %}
-                bg-green-100 text-green-800
-            {% elif transaction.status == 'processing' %}
-                bg-blue-100 text-blue-800
-            {% elif transaction.status == 'failed' or transaction.shipping_status == 'cancelled' %}
-                bg-red-100 text-red-800
-            {% else %}
-                bg-yellow-100 text-yellow-800
-            {% endif %}">
-            {{ transaction.current_status }}
-        </span>
-    </div>
-    
-    {% if transaction.status == 'pending' %}
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm text-yellow-700">
-                    Pesanan Anda menunggu pembayaran. Silakan klik tombol di bawah untuk melanjutkan pembayaran.
-                </p>
-            </div>
-        </div>
-        <div class="mt-4">
-            <a href="{{ transaction.payment_url }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                Lakukan Pembayaran
-            </a>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Order Info Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-bold mb-4">Order Information</h2>
-            <div class="space-y-3">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Order ID:</span>
-                    <span class="font-medium">{{ transaction.transaction_id }}</span>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+        <div class="p-6 bg-gray-50 border-b border-gray-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Order #{{ transaction.transaction_id }}</h1>
+                    <p class="text-gray-600">Placed on {{ transaction.date_created|date:"F j, Y" }} at {{ transaction.date_created|time:"g:i A" }}</p>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Order Date:</span>
-                    <span>{{ transaction.date_created|date:"F j, Y" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Payment Method:</span>
-                    <span>{{ transaction.get_payment_method_display }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Payment Status:</span>
-                    <span class="{% if transaction.status == 'paid' %}text-green-600{% elif transaction.status == 'processing' %}text-blue-600{% elif transaction.status == 'failed' %}text-red-600{% else %}text-yellow-600{% endif %}">
+                <div class="mt-4 md:mt-0">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                        {% if transaction.status == 'paid' %}bg-green-100 text-green-800
+                        {% elif transaction.status == 'processing' %}bg-blue-100 text-blue-800
+                        {% elif transaction.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
                         {{ transaction.get_status_display }}
                     </span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Shipping Status:</span>
-                    <span class="{% if transaction.shipping_status == 'delivered' %}text-green-600{% elif transaction.shipping_status == 'cancelled' %}text-red-600{% else %}text-yellow-600{% endif %}">
-                        {{ transaction.get_shipping_status_display }}
-                    </span>
+            </div>
+        </div>
+
+        {% if transaction.status == 'pending' %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 m-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        Please complete payment to process your order.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="{{ transaction.payment_url }}" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Pay Now
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Shipping Information</h3>
+                    <p class="text-gray-700 font-medium">{{ transaction.shipping_address }}</p>
+                    <p class="text-gray-600">{{ transaction.shipping_city }}, {{ transaction.shipping_postal_code }}</p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Payment Information</h3>
+                    <p class="text-gray-700">Method: <span class="font-medium">{{ transaction.get_payment_method_display }}</span></p>
+                    <p class="text-gray-700">Status: 
+                        <span class="font-medium 
+                        {% if transaction.status == 'paid' %}text-green-600
+                        {% elif transaction.status == 'processing' %}text-blue-600
+                        {% elif transaction.status == 'pending' %}text-yellow-600
+                        {% else %}text-red-600{% endif %}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Shipping Status</h3>
+                    <p class="text-gray-700">Status: <span class="font-medium">{{ transaction.get_shipping_status_display }}</span></p>
                 </div>
             </div>
         </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-bold mb-4">Shipping Information</h2>
-            <div class="space-y-3">
-                <div>
-                    <p class="text-gray-600 mb-1">Shipping Address:</p>
-                    <p>{{ transaction.shipping_address }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-600 mb-1">City:</p>
-                    <p>{{ transaction.shipping_city }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-600 mb-1">Postal Code:</p>
-                    <p>{{ transaction.shipping_postal_code }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Order Items -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-xl font-bold mb-6">Order Items</h2>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Product
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Size
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantity
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Subtotal
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for item in order_items %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="h-10 w-10 flex-shrink-0">
-                                    <img class="h-10 w-10 rounded-md object-cover" src="{{ item.product.main_image }}" alt="{{ item.product_name }}">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">
-                                        {{ item.product_name }}
+
+        <div class="p-6 border-t border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Size
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Price
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantity
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Subtotal
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in transaction_items %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-10 w-10 flex-shrink-0">
+                                        <img class="h-10 w-10 rounded-md object-cover" src="{{ item.product.main_image }}" alt="{{ item.product_name }}">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ item.product_name }}</div>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ item.size }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Rp {{ item.product_price|floatformat:"0" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ item.quantity }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            Rp {{ item.subtotal|floatformat:"0" }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot class="bg-gray-50">
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                            Product Total:
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            Rp {{ transaction.product_price|floatformat:"0" }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                            Delivery Fee:
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            Rp {{ transaction.delivery_price|floatformat:"0" }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                            Total:
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
-                            Rp {{ transaction.transaction_amount|floatformat:"0" }}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ item.size }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                Rp {{ item.product_price|floatformat:"0" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                                Rp {{ item.subtotal|floatformat:"0" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <td colspan="4" class="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                Product Total:
+                            </td>
+                            <td class="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                Rp {{ transaction.product_price|floatformat:"0" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                Delivery Fee:
+                            </td>
+                            <td class="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                Rp {{ transaction.delivery_price|floatformat:"0" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="px-6 py-3 text-right text-sm font-bold text-gray-900">
+                                Total:
+                            </td>
+                            <td class="px-6 py-3 text-right text-sm font-bold text-primary">
+                                Rp {{ transaction.transaction_amount|floatformat:"0" }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
-    
-    <!-- Action Buttons -->
-    <div class="flex justify-between">
-        <a href="{% url 'transaction:order_history' %}" class="inline-flex items-center text-primary-dark hover:underline">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
+
+    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <a href="{% url 'transaction:order_history' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-full transition duration-300 text-center">
             Back to Orders
         </a>
-        
-        <a href="{% url 'products:catalog' %}" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-2 px-4 rounded-full transition duration-300">
+        <a href="{% url 'products:catalog' %}" class="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-full transition duration-300 text-center">
             Continue Shopping
         </a>
     </div>

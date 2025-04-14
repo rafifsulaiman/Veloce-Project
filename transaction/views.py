@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from cart.models import CartItem
 from products.models import Product, ProductSize
-from .models import Transaction, OrderItem
+from .models import Transaction, OrderItem, AuditLog
 from .forms import CheckoutForm
 
 # Nilai ongkir fixed
@@ -110,7 +110,7 @@ def checkout_confirm(request):
                         return redirect('cart:cart')
                 
                 # Create transaction with fields based on ER diagram
-                transaction_id = f"TRX-{uuid.uuid4().hex[:8].upper()}-{int(timezone.now().timestamp())}"
+                transaction_id = f"TRX-{uuid.uuid4().hex[:12].upper()}"
                 new_transaction = Transaction.objects.create(
                     transaction_id=transaction_id,
                     user=request.user,

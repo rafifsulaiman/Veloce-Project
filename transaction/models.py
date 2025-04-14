@@ -2,6 +2,10 @@ from django.db import models
 from django.conf import settings
 from cart.models import CartItem
 from products.models import Product
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 class Transaction(models.Model):
     PAYMENT_STATUS_CHOICES = [
@@ -75,3 +79,62 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.product_price * self.quantity
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('view', 'View Transaction'),
+        ('status_change', 'Status Change'),
+        ('cancel', 'Cancel Transaction'),
+        ('unauthorized', 'Unauthorized Access Attempt'),
+        ('suspicious', 'Suspicious Activity'),
+    ]
+    
+    admin_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    transaction = models.ForeignKey(Transaction, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.TextField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.get_action_display()} by {self.admin_user.username} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+# Signal to assign transaction permissions to staff users
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def assign_transaction_permissions(sender, instance, created, **kwargs):
+    """
+    Assigns transaction-related permissions to staff users
+    This ensures that staff users can manage transactions properly
+    """
+    if instance.is_staff:
+        # Get content type for the Transaction model
+        transaction_content_type = ContentType.objects.get_for_model(Transaction)
+        
+        # Get the permissions for Transaction model
+        change_permission = Permission.objects.get(
+            codename='change_transaction',
+            content_type=transaction_content_type,
+        )
+        
+        delete_permission = Permission.objects.get(
+            codename='delete_transaction',
+            content_type=transaction_content_type,
+        )
+        
+        # Get content type for the AuditLog model
+        auditlog_content_type = ContentType.objects.get_for_model(AuditLog)
+        
+        # Get the permissions for AuditLog model
+        view_audit_permission = Permission.objects.get(
+            codename='view_auditlog',
+            content_type=auditlog_content_type,
+        )
+        
+        # Assign permissions to the user
+        instance.user_permissions.add(change_permission)
+        instance.user_permissions.add(delete_permission)
+        instance.user_permissions.add(view_audit_permission)
