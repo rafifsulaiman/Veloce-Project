@@ -1,10 +1,20 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
 
 {% block title %}Login - Veloce{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto">
     <h1 class="text-4xl font-bold text-center mb-8">LOGIN</h1>
+
+    <!-- Misal, area untuk pesan error atau notifikasi yang berasal dari server -->
+    <div id="notifications">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="notification {{ message.tags }}">{{ message|safe }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
     <form method="post" class="flex flex-col space-y-4">
         {% csrf_token %}
@@ -21,6 +31,13 @@
             LOGIN
         </button>
     </form>
+
+    <div class="media-options mt-6 text-center">
+        <a href="{% provider_login_url 'google' %}" class="field google">
+            <i class="fa-brands fa-google googleicon"></i>
+            <span>Login with Google</span>
+        </a>
+    </div>
     
     <div class="mt-6 text-center">
         Don't have an account? <a href="{% url 'users:register' %}" class="font-bold text-black">Register here</a>
@@ -29,6 +46,9 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Include DOMPurify dari CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js" integrity="sha512-4JSUgkCIyPsyTpARVhaDY1rdO36Suw95M/tt3J4Q1lQkBzLnSB6x6et6Xg1Lr7dkFU32LTsoOQvGlSvyHkM28w==" crossorigin="anonymous"></script>
+
 <script>
     function togglePassword() {
         const passwordInput = document.getElementById('password');
@@ -44,5 +64,19 @@
             eyeIcon.classList.add('fa-eye');
         }
     }
+
+    // Contoh penggunaan DOMPurify untuk mensanitasi konten error/notifikasi
+    (function() {
+        // Ambil elemen notifikasi (jika ada)
+        const notificationsEl = document.getElementById('notifications');
+        if (notificationsEl) {
+            // Ambil konten HTML yang tidak disanitasi
+            const rawHTML = notificationsEl.innerHTML;
+            // Sanitasi dengan DOMPurify
+            const cleanHTML = DOMPurify.sanitize(rawHTML);
+            // Gantikan dengan konten yang sudah bersih
+            notificationsEl.innerHTML = cleanHTML;
+        }
+    })();
 </script>
 {% endblock %}
