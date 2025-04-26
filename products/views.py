@@ -62,7 +62,7 @@ def product_catalog(request):
     
     return render(request, 'catalog.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 @ratelimit(key='user_or_ip', rate='10/m')
 def product_detail(request, product_id):
     try:
@@ -77,7 +77,7 @@ def product_detail(request, product_id):
         messages.error(request, "Produk tidak ditemukan")
         return redirect('products:catalog')
 
-@login_required
+@login_required(login_url='users:login')
 @ratelimit(key='user_or_ip', rate='10/m')
 def get_product(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)

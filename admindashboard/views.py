@@ -12,7 +12,7 @@ from django.db.models import Q, F, Sum
 from transaction.models import Transaction, AuditLog, OrderItem
 from datetime import datetime, timedelta
 
-@login_required
+@login_required(login_url='users:login')
 def admin_page(request):
     if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
@@ -49,7 +49,7 @@ def admin_page(request):
     
     return render(request, 'admin_page.html', context)
     
-@login_required
+@login_required(login_url='users:login')
 def add_product(request):
     if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
@@ -65,7 +65,7 @@ def add_product(request):
         form = ProductForm()
     return render(request, 'add_product.html', {'form': form})
 
-@login_required
+@login_required(login_url='users:login')
 @csrf_exempt
 def edit_product(request, product_id):
     if not request.user.is_staff:
@@ -97,7 +97,8 @@ def edit_product(request, product_id):
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': "Method Not Allowed"}, status=405)
-@login_required
+
+@login_required(login_url='users:login')
 def delete_product(request, product_id):
     if not request.user.is_staff:
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
