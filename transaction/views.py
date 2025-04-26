@@ -18,7 +18,7 @@ from .forms import CheckoutForm
 # Nilai ongkir fixed
 FIXED_DELIVERY_PRICE = 25000
 
-@login_required
+@login_required(login_url='users:login')
 def checkout_view(request):
     """Displays the checkout page with cart items and shipping form"""
     # Redirect admin users
@@ -62,7 +62,7 @@ def checkout_view(request):
     
     return render(request, 'checkout.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def checkout_confirm(request):
     """Confirmation page before finalizing order"""
     # Redirect admin users
@@ -173,7 +173,7 @@ def generate_velocepay_url(transaction_obj):
     # In a real implementation, this would include authentication tokens, etc.
     return base_url
 
-@login_required
+@login_required(login_url='users:login')
 def process_payment(request, transaction_id):
     """
     Process the payment from VelocePay
@@ -209,7 +209,7 @@ def process_payment(request, transaction_id):
         messages.error(request, f"Error processing payment: {str(e)}")
         return redirect('transaction:order_history')
 
-@login_required
+@login_required(login_url='users:login')
 def transaction_success(request, transaction_id):
     """Success page after completing an order"""
     try:
@@ -223,7 +223,7 @@ def transaction_success(request, transaction_id):
     
     return render(request, 'success.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def order_history(request):
     """Displays user's order history"""
     # Get all user transactions ordered by date (newest first)
@@ -235,7 +235,7 @@ def order_history(request):
     
     return render(request, 'order_history.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def order_detail(request, transaction_id):
     """Displays details of a specific order"""
     try:

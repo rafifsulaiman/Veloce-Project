@@ -8,10 +8,16 @@ from .models import CustomUser, Address
 from django.conf import settings
 import logging
 from django_ratelimit.decorators import ratelimit
+from captcha.image import ImageCaptcha
+from io import BytesIO
+import random
+import string
+from PIL import Image
+import base64
 
 # Create your views here.
 logger = logging.getLogger(__name__)
-@ratelimit(key='user_or_ip', rate='10/m')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -24,25 +30,71 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'register.html', {'form': form})
 
-@ratelimit(key='user_or_ip', rate='10/m')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def user_login(request):
+    # Siapkan form login
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
+        
+        # Hitung gagal login dari session
+        failed_attempts = request.session.get('failed_login_attempts', 0)
+        
+        # Jika sudah gagal >= 3 kali, wajib isi captcha
+        if failed_attempts >= 3:
+            input_captcha = request.POST.get('captcha_text')
+            correct_captcha = request.session.get('captcha_text')
+            
+            if not input_captcha or input_captcha.lower() != correct_captcha.lower():
+                messages.error(request, 'Incorrect CAPTCHA.')
+                # regenerate captcha
+                return _render_login_with_captcha(request, form)
+
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
+            
             if user is not None:
                 login(request, user)
+                request.session['failed_login_attempts'] = 0  # Reset counter
                 messages.success(request, f'Welcome, {username}!')
                 return redirect('home:index')
             else:
                 messages.error(request, 'Invalid username or password.')
+                request.session['failed_login_attempts'] = failed_attempts + 1
+                
+                if request.session['failed_login_attempts'] >= 3:
+                    return _render_login_with_captcha(request, form)
+
     else:
         form = UserLoginForm()
+        # Reset captcha-related session if fresh GET
+        request.session.pop('captcha_text', None)
+
     return render(request, 'login.html', {'form': form})
 
-@login_required
+def _render_login_with_captcha(request, form):
+    # Generate Captcha Text
+    text = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+    request.session['captcha_text'] = text
+
+    # Generate Captcha Image
+    captcha = ImageCaptcha(width=280, height=90)
+    data = captcha.generate(text)
+    image = Image.open(data)
+
+    # Convert image to base64 to embed in HTML
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    captcha_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    context = {
+        'form': form,
+        'captcha_image': captcha_base64,
+    }
+    return render(request, 'login.html', context)
+
+@login_required(login_url='users:login')
 def user_logout(request):
     # Simpan session key sebelum logout untuk keperluan validasi/log
     current_session_key = request.session.session_key
@@ -69,8 +121,8 @@ def user_logout(request):
     logger.debug("User logged out and session cookie deleted. Session key sebelum logout: %s", current_session_key)
     return response
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def profile_view(request):
     user = request.user
     context = {
@@ -78,7 +130,7 @@ def profile_view(request):
     }
     return render(request, 'profile/profile.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def edit_profile(request):
     user = request.user
     if request.method == 'POST':
@@ -110,7 +162,7 @@ def edit_profile(request):
     }
     return render(request, 'profile/edit_profile.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def address_list(request):
     addresses = Address.objects.filter(user=request.user)
     context = {
@@ -118,7 +170,7 @@ def address_list(request):
     }
     return render(request, 'profile/address_list.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def add_address(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -155,7 +207,7 @@ def add_address(request):
     
     return render(request, 'profile/add_address.html')
 
-@login_required
+@login_required(login_url='users:login')
 def edit_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, user=request.user)
     

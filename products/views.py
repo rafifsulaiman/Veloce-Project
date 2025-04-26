@@ -7,7 +7,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 
-@ratelimit(key='user_or_ip', rate='10/m')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def product_catalog(request):
     # Get all products
     products = Product.objects.all()
@@ -62,8 +62,8 @@ def product_catalog(request):
     
     return render(request, 'catalog.html', context)
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def product_detail(request, product_id):
     try:
         product = Product.objects.get(product_id=product_id)
@@ -77,8 +77,8 @@ def product_detail(request, product_id):
         messages.error(request, "Produk tidak ditemukan")
         return redirect('products:catalog')
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def get_product(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     
