@@ -8,3 +8,6 @@ python-dotenv
 django-ratelimit
 pyjwt
 django-allauth
+captcha
+oauth2_provider
+cryptography
