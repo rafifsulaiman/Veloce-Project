@@ -1,7 +1,10 @@
 import json, re
 from django import forms
 from django.core.exceptions import ValidationError
-from products.models import Product
+from products.models import Product, ProductSize
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import requests
 
 # only allow letters, numbers, spaces, hyphens and underscores
 SAFE_TEXT_REGEX = re.compile(r'^[\w\s\-]+$')
@@ -14,7 +17,7 @@ def validate_safe_text(value):
 
 class ProductForm(forms.ModelForm):
     # Define a size field to handle multiple sizes
-    AVAILABLE_SIZES = [(str(size), str(size)) for size in range(36, 46)]
+    AVAILABLE_SIZES = [(str(size), str(size)) for size in range(16, 61)]
     
     sizes = forms.MultipleChoiceField(
         choices=AVAILABLE_SIZES,
@@ -58,10 +61,23 @@ class ProductForm(forms.ModelForm):
 
     def save(self, commit=True):
         product = super().save(commit=False)
-        # Convert selected sizes to JSON
-        sizes = [int(size) for size in self.cleaned_data.get('sizes', [])]
-        product.size = json.dumps(sizes)
         
         if commit:
             product.save()
+            
+            # Get the sizes data from the form
+            sizes = [int(size) for size in self.cleaned_data.get('sizes', [])]
+            
+            # Clear existing ProductSize objects if we're editing
+            if product.pk:
+                product.sizes.all().delete()
+            
+            # Create new ProductSize objects for each selected size
+            for size in sizes:
+                ProductSize.objects.create(
+                    product=product,
+                    size=size,
+                    stock=0  # Default stock is 0
+                )
+                
         return product

@@ -40,27 +40,75 @@ def admin_page(request):
     brands_count = Product.objects.values('brand').distinct().count()
     sizes_count = set([size.size for product in Product.objects.all() for size in product.sizes.all()])
     
+    # Count products by gender for dashboard cards
+    all_products = Product.objects.all()
+    total_products = all_products.count()
+    men_products = all_products.filter(gender='men').count()
+    women_products = all_products.filter(gender='women').count()
+    unisex_products = all_products.filter(gender='unisex').count()
+    
     context = {
         'products': products_page,
         'total_stock': total_stock,
         'brands_count': brands_count,
-        'sizes_count': len(sizes_count)
+        'sizes_count': len(sizes_count),
+        'total_products': total_products,
+        'total_men_products': men_products,
+        'total_women_products': women_products,
+        'total_unisex_products': unisex_products
     }
     
     return render(request, 'admin_page.html', context)
     
 @login_required(login_url='users:login')
+@csrf_exempt  # Jika perlu, tapi pastikan CSRF token benar
 def add_product(request):
     if not request.user.is_staff:
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
+        return JsonResponse({'error': "Anda tidak memiliki izin untuk mengakses halaman ini."}, status=403)
     
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
+        post_data = request.POST.copy()
+        # Ambil sizes_data dari POST dan isi ke field 'sizes'
+        sizes_data = []
+        if 'sizes_data' in post_data:
+            try:
+                sizes_data = json.loads(post_data['sizes_data'])
+                sizes_list = [str(item['size']) for item in sizes_data]
+                post_data.setlist('sizes', sizes_list)
+            except Exception as e:
+                print("DEBUG: Gagal parsing sizes_data:", e)
+                return JsonResponse({'error': f"Error parsing size data: {str(e)}"}, status=400)
+        
+        form = ProductForm(post_data, request.FILES)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Produk berhasil ditambahkan.")
-            return redirect('products:catalog')
+            product = form.save()
+            
+            # Create ProductSize objects with proper stock values
+            if sizes_data:
+                # Clear any sizes created by form.save()
+                product.sizes.all().delete()
+                
+                # Create new ProductSize objects with the correct stock values
+                for size_item in sizes_data:
+                    from products.models import ProductSize
+                    ProductSize.objects.create(
+                        product=product,
+                        size=int(size_item['size']),
+                        stock=int(size_item['stock'])
+                    )
+            
+            # Create audit log for product addition
+            size_summary = ", ".join([f"Size {s['size']}: {s['stock']} units" for s in sizes_data])
+            log_admin_action(
+                request, 
+                action='add',
+                details=f'Admin added new product: {product.product_id} - {product.name} ({product.brand}) at Rp{product.price}. Stock: {size_summary}'
+            )
+            
+            return JsonResponse({'success': True, 'message': "Produk berhasil ditambahkan."})
+        else:
+            # Kirim error validasi ke frontend
+            return JsonResponse({'error': form.errors}, status=400)
     else:
         form = ProductForm()
     return render(request, 'add_product.html', {'form': form})
@@ -78,19 +126,65 @@ def edit_product(request, product_id):
         try:
             data = json.loads(request.body)
             
-            product.name = data.get('name', product.name)
-            product.price = data.get('price', product.price)
+            # Record old values for audit
+            old_values = {
+                'name': product.name,
+                'brand': product.brand,
+                'price': product.price,
+                'gender': product.get_gender_display(),
+                'sizes': product.get_sizes_with_stock()
+            }
             
-            sizes = data.get('sizes')
-            if sizes:
-                if isinstance(sizes, list):
-                    product.size = json.dumps(sizes)
-                else:
-                    product.size = sizes
-                    
+            # Update basic product information
+            product.name = data.get('name', product.name)
+            product.brand = data.get('brand', product.brand)
+            product.price = data.get('price', product.price)
+            product.gender = data.get('gender', product.gender)
             product.image_url = data.get('image_url', product.image_url)
-
+            
+            # Save product
             product.save()
+            
+            # Handle sizes and stock
+            sizes_data = data.get('sizes', [])
+            if sizes_data:
+                # Clear existing sizes
+                product.sizes.all().delete()
+                
+                # Create new size entries
+                from products.models import ProductSize
+                for size_item in sizes_data:
+                    if isinstance(size_item, dict) and 'size' in size_item:
+                        ProductSize.objects.create(
+                            product=product,
+                            size=int(size_item['size']),
+                            stock=int(size_item.get('stock', 0))
+                        )
+            
+            # Record new values for audit
+            new_values = {
+                'name': product.name,
+                'brand': product.brand,
+                'price': product.price,
+                'gender': product.get_gender_display(),
+                'sizes': product.get_sizes_with_stock()
+            }
+            
+            # Create audit log
+            changes = []
+            for key in old_values:
+                if str(old_values[key]) != str(new_values[key]):
+                    changes.append(f"{key}: {old_values[key]} → {new_values[key]}")
+            
+            changes_str = ", ".join(changes) if changes else "No significant changes"
+            
+            # Log the edit action
+            log_admin_action(
+                request, 
+                action='edit',
+                details=f'Admin edited product {product.product_id}: {changes_str}'
+            )
+
             return JsonResponse({'message': "Produk berhasil diubah."})
 
         except Exception as e:
@@ -99,15 +193,44 @@ def edit_product(request, product_id):
     return JsonResponse({'error': "Method Not Allowed"}, status=405)
 
 @login_required(login_url='users:login')
+@csrf_exempt
 def delete_product(request, product_id):
     if not request.user.is_staff:
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({'error': "Anda tidak memiliki izin untuk mengakses halaman ini."}, status=403)
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
         return redirect('products:catalog')
     
-    product = get_object_or_404(Product, product_id=product_id)
-    product.delete()
-    messages.success(request, f"Produk {product.name} berhasil dihapus.")
-    return redirect('admindashboard:admin_page')
+    try:
+        product = get_object_or_404(Product, product_id=product_id)
+        product_name = product.name
+        
+        # Audit logging for product deletion
+        log_admin_action(
+            request, 
+            action='delete',
+            details=f'Admin deleted product: {product.product_id} - {product.name}'
+        )
+        
+        # Delete the product
+        product.delete()
+        
+        # Return JSON response if this is an AJAX request
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'status': 'success',
+                'message': f"Product {product_name} has been deleted."
+            })
+        
+        # Otherwise, redirect with a message
+        messages.success(request, f"Produk {product_name} berhasil dihapus.")
+        return redirect('admindashboard:admin_page')
+        
+    except Exception as e:
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({'error': str(e)}, status=400)
+        messages.error(request, f"Error deleting product: {str(e)}")
+        return redirect('admindashboard:admin_page')
 
 # Admin transaction management views
 @staff_member_required
@@ -396,6 +519,64 @@ def admin_audit_logs(request):
     }
     
     return render(request, 'audit_logs.html', context)
+
+@staff_member_required
+def admin_product_audit_logs(request):
+    """
+    Admin view to see product-related audit logs
+    """
+    # Verify access rights for viewing audit logs
+    if not verify_admin_access_rights(request.user, 'view_audit_logs'):
+        messages.error(request, "You do not have permission to view audit logs.")
+        return redirect('admindashboard:admin_page')
+    
+    # Get filter parameters
+    action_type = request.GET.get('action', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    admin_filter = request.GET.get('admin', '')
+    
+    # Base queryset - filter only product-related actions
+    product_actions = ['add', 'edit', 'delete']
+    logs = AuditLog.objects.filter(action__in=product_actions)
+    
+    # Apply filters
+    if action_type and action_type in product_actions:
+        logs = logs.filter(action=action_type)
+    
+    if start_date and end_date:
+        try:
+            start = datetime.strptime(start_date, '%Y-%m-%d')
+            end = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            logs = logs.filter(timestamp__range=[start, end])
+        except ValueError:
+            # Invalid date format, ignore the filter
+            pass
+    
+    if admin_filter:
+        logs = logs.filter(admin_user__username=admin_filter)
+    
+    # Pagination
+    paginator = Paginator(logs, 50)  # Show 50 logs per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all admin users for the filter dropdown
+    admin_users = set(AuditLog.objects.filter(action__in=product_actions).values_list('admin_user__username', flat=True).distinct())
+    
+    context = {
+        'page_obj': page_obj,
+        'filter_action': action_type,
+        'filter_start_date': start_date,
+        'filter_end_date': end_date,
+        'filter_admin': admin_filter,
+        'admin_users': admin_users,
+        'action_choices': [choice for choice in AuditLog.ACTION_CHOICES if choice[0] in product_actions],
+        'page_title': 'Product Audit Logs',
+        'back_url': 'admindashboard:admin_page',
+    }
+    
+    return render(request, 'product_audit_logs.html', context)
 
 # Helper functions for admin transaction management
 
