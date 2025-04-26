@@ -154,4 +154,16 @@
         </form>
     </div>
 </div>
+<!-- Input Sanitization Script -->
+<script>
+    // Fungsi untuk menghapus semua tag HTML
+    function sanitize(str) {
+      return str.replace(/<[^>]+>/g, '');
+    }
+    document.querySelector('form').addEventListener('submit', function(e) {
+      this.querySelectorAll('input[type="text"], textarea').forEach(function(field) {
+        field.value = sanitize(field.value);
+      });
+    });
+</script>  
 {% endblock %} 
