@@ -44,8 +44,11 @@ class UserViewsTest(TestCase):
         }
         resp = self.client.post(reverse('users:register'), data)
         self.assertEqual(resp.status_code, 200)
-        # form error on email
-        self.assertFormError(resp, 'form', 'email', "Enter a valid email address.")
+        # Check if form is in context and has errors
+        self.assertIn('form', resp.context)
+        self.assertTrue(resp.context['form'].errors)
+        self.assertIn('email', resp.context['form'].errors)
+        self.assertEqual(resp.context['form'].errors['email'][0], "Format email tidak valid. Contoh: user@example.com")
 
     def test_login_success_and_reset_fail_count(self):
         session = self.client.session
