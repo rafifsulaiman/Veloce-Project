@@ -1,13 +1,19 @@
-from django.test import TestCase, Client
+# users/tests.py
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.core.cache import cache
 from users.models import CustomUser, Address
 
 User = get_user_model()
 
+@override_settings(RATELIMIT_ENABLE=True)
 class UserViewsTest(TestCase):
     def setUp(self):
+        # clear any ratelimit counters before each test
+        cache.clear()
+
         self.client = Client()
         self.username = "testuser"
         self.password = "password123"
@@ -25,35 +31,41 @@ class UserViewsTest(TestCase):
     def test_register_view_post_success(self):
         data = {
             'username': 'alice',
+            'first_name': 'Alice',
+            'last_name': 'Smith',
             'email': 'alice@example.com',
             'password1': 'complexpass123',
             'password2': 'complexpass123'
         }
         resp = self.client.post(reverse('users:register'), data)
-        # setelah sukses, redirect ke login
         self.assertRedirects(resp, reverse('users:login'))
-        # user baru harus ada
         self.assertTrue(User.objects.filter(username='alice').exists())
 
     def test_register_view_post_invalid_email(self):
         data = {
             'username': 'bob',
+            'first_name': 'Bob',
+            'last_name': 'Builder',
             'email': 'not-an-email',
             'password1': 'pass1234',
             'password2': 'pass1234'
         }
         resp = self.client.post(reverse('users:register'), data)
         self.assertEqual(resp.status_code, 200)
-        # Check if form is in context and has errors
         self.assertIn('form', resp.context)
         self.assertTrue(resp.context['form'].errors)
         self.assertIn('email', resp.context['form'].errors)
-        self.assertEqual(resp.context['form'].errors['email'][0], "Format email tidak valid. Contoh: user@example.com")
+        self.assertEqual(
+            resp.context['form'].errors['email'][0],
+            "Format email tidak valid. Contoh: user@example.com"
+        )
 
     def test_login_success_and_reset_fail_count(self):
+        # failed_login_attempts was reset in setUp; here we simulate 2 prior fails
         session = self.client.session
         session['failed_login_attempts'] = 2
         session.save()
+
         resp = self.client.post(reverse('users:login'), {
             'username': self.username,
             'password': self.password
@@ -65,10 +77,12 @@ class UserViewsTest(TestCase):
         session = self.client.session
         session['failed_login_attempts'] = 2
         session.save()
+
         resp = self.client.post(reverse('users:login'), {
             'username': 'wrong',
             'password': 'wrong'
         })
+        self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Invalid username or password.")
         self.assertEqual(self.client.session.get('failed_login_attempts'), 3)
 
@@ -77,17 +91,20 @@ class UserViewsTest(TestCase):
         session['failed_login_attempts'] = 3
         session['captcha_text'] = 'ABC12'
         session.save()
+
         resp = self.client.post(reverse('users:login'), {
             'username': self.username,
             'password': self.password,
             'captcha_text': 'WRONG'
         })
+        self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Incorrect CAPTCHA.')
 
     def test_captcha_cleared_on_get(self):
         session = self.client.session
         session['captcha_text'] = 'TOBEDELETED'
         session.save()
+
         self.client.get(reverse('users:login'))
         self.assertNotIn('captcha_text', self.client.session)
 
@@ -103,16 +120,21 @@ class UserViewsTest(TestCase):
         self.assertTemplateUsed(resp, 'profile/profile.html')
 
     def test_edit_profile(self):
-        self.client.login(username=self.username, password=self.password)
+        self.client.force_login(self.user)
         resp = self.client.post(reverse('users:edit_profile'), {
             'first_name': 'Rafi',
-            'last_name': 'Test',
-            'email': 'rafi@example.com'
+            'last_name' : 'Test',
+            'phone_number': '081234567890',
+            'profile_pic_url': 'http://example.com/pic.png',
+            'gender': 'Male',
         })
         self.assertRedirects(resp, reverse('users:profile'))
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'Rafi')
-        self.assertEqual(self.user.email, 'rafi@example.com')
+        self.assertEqual(self.user.last_name,  'Test')
+        self.assertEqual(self.user.phone_number, '081234567890')
+        self.assertEqual(self.user.profile_pic_url, 'http://example.com/pic.png')
+        self.assertEqual(self.user.gender, 'Male')
 
     def test_logout_clears_session_and_cookie(self):
         self.client.login(username=self.username, password=self.password)
@@ -129,7 +151,6 @@ class UserViewsTest(TestCase):
         self.assertRedirects(resp, f"{reverse('users:login')}?next={url}")
 
     def test_address_list_and_context(self):
-        # buat satu alamat
         Address.objects.create(
             user=self.user, name='Home',
             phone_number='08123',
@@ -151,12 +172,10 @@ class UserViewsTest(TestCase):
         self.assertRedirects(resp, f"{reverse('users:login')}?next={url}")
 
         self.client.login(username=self.username, password=self.password)
-        # GET form
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'profile/add_address.html')
 
-        # POST data
         data = {
             'name': 'Office', 'phone_number': '08999',
             'street_address': 'Jl. B', 'rt_rw': '03/04',
@@ -179,17 +198,15 @@ class UserViewsTest(TestCase):
             postal_code='00000', additional_info='', is_main=False
         )
         url = reverse('users:edit_address', args=[addr.id])
-        # login required
+
         resp = self.client.get(url)
         self.assertRedirects(resp, f"{reverse('users:login')}?next={url}")
 
         self.client.login(username=self.username, password=self.password)
-        # GET form
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'profile/edit_address.html')
 
-        # POST update
         data = {
             'name': 'Y', 'phone_number': '08111',
             'street_address': 'Jl. Y', 'rt_rw': '07/08',
@@ -211,3 +228,15 @@ class UserViewsTest(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'timer.html')
+
+    # ----- Rate‐limit enforcement -----
+
+    def test_rate_limit_enforced(self):
+        # Make 10 rapid requests; all should pass
+        for _ in range(10):
+            resp = self.client.get(reverse('users:register'))
+            self.assertEqual(resp.status_code, 200)
+
+        # 11th request should be blocked by ratelimit
+        resp = self.client.get(reverse('users:register'))
+        self.assertIn(resp.status_code, (403, 429))
