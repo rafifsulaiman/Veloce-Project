@@ -25,14 +25,18 @@ def product_catalog(request):
     # Filter by size if parameter exists
     size_filter = request.GET.get('size')
     if size_filter:
-        # Filter products where the size field contains the selected size
-        filtered_products = []
-        for product in products:
-            sizes = product.get_sizes()
-            if sizes and int(size_filter) in sizes:
-                filtered_products.append(product.product_id)
-        
-        products = products.filter(product_id__in=filtered_products)
+        try:
+            size_int = int(size_filter)
+        except ValueError:
+            size_int = None
+
+        if size_int is not None:
+            filtered_ids = [
+                p.product_id
+                for p in products
+                if size_int in (p.get_sizes() or [])
+            ]
+            products = products.filter(product_id__in=filtered_ids)
     
     # Get list of brands for filter - fix duplicates by converting to set and then sorted list
     brands_raw = Product.objects.values_list('brand', flat=True)
