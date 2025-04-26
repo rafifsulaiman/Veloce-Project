@@ -14,20 +14,24 @@ import random
 import string
 from PIL import Image
 import base64
+import re
+from django.utils.html import strip_tags
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 logger = logging.getLogger(__name__)
 @ratelimit(key='user_or_ip', rate='10/m', block=True)
 def register(request):
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('users:login')
     else:
-        form = UserRegisterForm()
+        form = CustomUserCreationForm()
     return render(request, 'register.html', {'form': form})
 
 @ratelimit(key='user_or_ip', rate='10/m', block=True)
@@ -130,31 +134,51 @@ def profile_view(request):
     }
     return render(request, 'profile/profile.html', context)
 
+NAME_REGEX = re.compile(r'^[\w\s\-]+$')
+PHONE_REGEX = re.compile(r'^\+?[0-9\s\-]+$')
+url_validator = URLValidator()
 @login_required(login_url='users:login')
 def edit_profile(request):
     user = request.user
     if request.method == 'POST':
         # Update user data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone_number = request.POST.get('phone_number')
-        gender = request.POST.get('gender')
-        profile_pic_url = request.POST.get('profile_pic_url')
-        
-        # Only update if values provided
-        if first_name:
-            user.first_name = first_name
-        if last_name:
-            user.last_name = last_name
-        if email:
-            user.email = email
-        if phone_number:
-            user.phone_number = phone_number
+        raw_first = strip_tags(request.POST.get('first_name', '')).strip()
+        raw_last  = strip_tags(request.POST.get('last_name', '')).strip()
+        raw_phone = strip_tags(request.POST.get('phone_number', '')).strip()
+        raw_url   = strip_tags(request.POST.get('profile_pic_url', '')).strip()
+        gender    = request.POST.get('gender')
+
+        # Validasi first_name
+        if raw_first and not NAME_REGEX.match(raw_first):
+            messages.error(request, 'First name mengandung karakter tidak valid.')
+            return redirect('users:edit_profile')
+        # Validasi last_name
+        if raw_last and not NAME_REGEX.match(raw_last):
+            messages.error(request, 'Last name mengandung karakter tidak valid.')
+            return redirect('users:edit_profile')
+        # Validasi phone_number
+        if raw_phone and not PHONE_REGEX.match(raw_phone):
+            messages.error(request, 'Phone number mengandung karakter tidak valid.')
+            return redirect('users:edit_profile')
+        # Validasi profile_pic_url
+        if raw_url is not None and raw_url != 'None':
+            try:
+                url_validator(raw_url)
+            except ValidationError:
+                messages.error(request, 'Profile picture URL tidak valid.')
+                return redirect('users:edit_profile')
+
+        # Assign ke model jika lolos validasi
+        if raw_first:
+            user.first_name = raw_first
+        if raw_last:
+            user.last_name = raw_last
+        if raw_phone:
+            user.phone_number = raw_phone
         if gender:
             user.gender = gender
-        if profile_pic_url:
-            user.profile_pic_url = profile_pic_url
+        if raw_url:
+            user.profile_pic_url = raw_url
         
         user.save()
         messages.success(request, 'Your profile has been updated successfully.')

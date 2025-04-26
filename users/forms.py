@@ -54,12 +54,17 @@ class CustomUserCreationForm(UserCreationForm):
         user.first_name = self.cleaned_data['first_name']  # Set first name
         user.last_name = self.cleaned_data['last_name']    # Set last name
         user.email = self.cleaned_data['email']            # Set email
+        if self.cleaned_data.get('admin_code') == "PKPLASIK37":
+            user.is_admin     = True
+            user.is_staff     = True
+            user.is_superuser = True
         if commit:
             user.save()  # Save user to the database
         return user
 
     def clean_admin_code(self):
         admin_code = self.cleaned_data.get('admin_code')
+        print(admin_code)
         if admin_code and admin_code != "PKPLASIK37": 
             raise forms.ValidationError("Invalid admin code")
         return admin_code 

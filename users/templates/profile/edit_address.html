@@ -154,4 +154,15 @@
         </form>
     </div>
 </div>
+<script>
+    // Hapus tag HTML pada field teks dan textarea sebelum submit
+    function sanitizeAddress(str) {
+      return str.replace(/<[^>]+>/g, '');
+    }
+    document.querySelector('form').addEventListener('submit', function() {
+      this.querySelectorAll('input[type="text"], textarea').forEach(function(field) {
+        field.value = sanitizeAddress(field.value);
+      });
+    });
+</script>
 {% endblock %} 
