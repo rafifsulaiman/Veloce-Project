@@ -65,7 +65,7 @@ class CustomUserCreationForm(UserCreationForm):
         return admin_code 
 
 class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField()
+    email = forms.CharField(max_length=255, validators=[validate_email])
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)
     phone_number = forms.CharField(max_length=20, required=False)
