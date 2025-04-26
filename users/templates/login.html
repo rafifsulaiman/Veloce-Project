@@ -26,7 +26,10 @@
                 <i class="fas fa-eye" id="eye-icon"></i>
             </button>
         </div>
-        
+        {% if captcha_image %}
+            <img src="data:image/png;base64,{{ captcha_image }}" alt="captcha"><br>
+            <input type="text" name="captcha_text" placeholder="Enter CAPTCHA" required><br>
+        {% endif %}
         <button type="submit" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-4 rounded-full mt-4 transition duration-300">
             LOGIN
         </button>
