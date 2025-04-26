@@ -17,7 +17,7 @@ import base64
 
 # Create your views here.
 logger = logging.getLogger(__name__)
-@ratelimit(key='user_or_ip', rate='10/m')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -30,7 +30,7 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'register.html', {'form': form})
 
-@ratelimit(key='user_or_ip', rate='10/m')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def user_login(request):
     # Siapkan form login
     if request.method == 'POST':
@@ -94,7 +94,7 @@ def _render_login_with_captcha(request, form):
     }
     return render(request, 'login.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def user_logout(request):
     # Simpan session key sebelum logout untuk keperluan validasi/log
     current_session_key = request.session.session_key
@@ -121,8 +121,8 @@ def user_logout(request):
     logger.debug("User logged out and session cookie deleted. Session key sebelum logout: %s", current_session_key)
     return response
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def profile_view(request):
     user = request.user
     context = {
@@ -130,7 +130,7 @@ def profile_view(request):
     }
     return render(request, 'profile/profile.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def edit_profile(request):
     user = request.user
     if request.method == 'POST':
@@ -165,7 +165,7 @@ def edit_profile(request):
     }
     return render(request, 'profile/edit_profile.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def address_list(request):
     addresses = Address.objects.filter(user=request.user)
     context = {
@@ -173,7 +173,7 @@ def address_list(request):
     }
     return render(request, 'profile/address_list.html', context)
 
-@login_required
+@login_required(login_url='users:login')
 def add_address(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -210,7 +210,7 @@ def add_address(request):
     
     return render(request, 'profile/add_address.html')
 
-@login_required
+@login_required(login_url='users:login')
 def edit_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, user=request.user)
     
