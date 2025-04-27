@@ -6,8 +6,8 @@ from products.models import Product, ProductSize
 from django_ratelimit.decorators import ratelimit
 
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def cart_view(request):
     """
     View for displaying the user's shopping cart
@@ -27,8 +27,8 @@ def cart_view(request):
     }
     return render(request, 'cart/cart.html', context)
 
-@login_required
-@ratelimit(key='user_or_ip', rate='10/m')
+@login_required(login_url='users:login')
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def add_to_cart(request, product_id):
     """Add a product to the user's cart"""
     if request.user.is_staff:
@@ -87,7 +87,7 @@ def add_to_cart(request, product_id):
     
     return redirect('products:product_detail', product_id=product_id)
 
-@login_required
+@login_required(login_url='users:login')
 def remove_from_cart(request, item_id):
     """Remove an item from the cart"""
     if request.user.is_staff:
@@ -104,7 +104,7 @@ def remove_from_cart(request, item_id):
     
     return redirect('cart:cart')
 
-@login_required
+@login_required(login_url='users:login')
 def update_quantity(request, item_id):
     """Update the quantity of an item in the cart"""
     if request.user.is_staff:
