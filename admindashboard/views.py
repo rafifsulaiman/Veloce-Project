@@ -550,7 +550,7 @@ def admin_audit_logs(request):
     logs = logs.order_by('-timestamp')
     
     # Pagination
-    paginator = Paginator(logs, 50)  # Show 50 logs per page
+    paginator = Paginator(logs, 50)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
@@ -564,11 +564,12 @@ def admin_audit_logs(request):
         'filter_end_date': end_date,
         'filter_admin': admin_filter,
         'admin_users': admin_users,
-        'action_choices': AuditLog.ACTION_CHOICES,
+        # Only transaction-related actions
+        'action_choices': [choice for choice in AuditLog.ACTION_CHOICES if choice[0] in ['view', 'status_change', 'cancel', 'unauthorized', 'suspicious']],
         'today_date': datetime.now().date(),
     }
     
-    return render(request, 'audit_logs.html', context)
+    return render(request, 'transaction_audit_logs.html', context)
 
 @staff_member_required
 def admin_product_audit_logs(request):

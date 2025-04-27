@@ -235,14 +235,6 @@
 function toggleDateFields(type) {
     const singleDateContainer = document.getElementById('singleDateContainer');
     const dateRangeContainer = document.getElementById('dateRangeContainer');
-    const singleDateInput = document.getElementById('single_date');
-    const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-
-    // Reset all date inputs
-    singleDateInput.value = '';
-    startDateInput.value = '';
-    endDateInput.value = '';
 
     switch(type) {
         case 'none':
@@ -288,7 +280,16 @@ document.getElementById('filterForm').addEventListener('submit', function(e) {
 
 // Initialize date fields based on current filter type
 document.addEventListener('DOMContentLoaded', function() {
-    const currentFilterType = document.querySelector('input[name="date_filter_type"]:checked').value;
+    const radios = document.querySelectorAll('input[name="date_filter_type"]');
+    let currentFilterType = 'none';
+    radios.forEach(radio => {
+        if (radio.checked) {
+            currentFilterType = radio.value;
+        }
+        radio.addEventListener('change', function() {
+            toggleDateFields(this.value);
+        });
+    });
     toggleDateFields(currentFilterType);
 });
 </script>
