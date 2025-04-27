@@ -47,9 +47,12 @@
                 </div>
             </div>
 
-            <div class="mt-4 text-center">
+            <div class="mt-4 text-center flex justify-center space-x-4">
                 <a href="{{ transaction.payment_url }}" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                     Pay Now
+                </a>
+                <a href="{% url 'transaction:cancel_order' transaction.transaction_id %}" onclick="return confirm('Are you sure you want to cancel this order?')" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Cancel Order
                 </a>
             </div>
         </div>

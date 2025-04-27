@@ -260,14 +260,17 @@ def order_detail(request, transaction_id):
     
     return render(request, 'order_detail.html', context)
 
-@staff_member_required
+@login_required
 @transaction.atomic
 def cancel_order(request, transaction_id):
-    """Admin cancels an order and restores stock."""
-    txn = get_object_or_404(Transaction, transaction_id=transaction_id)
-    if txn.status == 'cancelled':
-        messages.warning(request, "Order is already cancelled.")
+    """Allow users to cancel their own pending orders."""
+    txn = get_object_or_404(Transaction, transaction_id=transaction_id, user=request.user)
+    
+    # Only allow cancellation of pending orders
+    if txn.status != 'pending':
+        messages.warning(request, "Only pending orders can be cancelled.")
         return redirect('transaction:order_detail', transaction_id=transaction_id)
+    
     # Restore stock for each item
     for item in txn.items.all():
         product_size = ProductSize.objects.select_for_update().get(
@@ -276,8 +279,10 @@ def cancel_order(request, transaction_id):
         )
         product_size.stock += item.quantity
         product_size.save()
+    
     txn.status = 'cancelled'
     txn.shipping_status = 'cancelled'
     txn.save()
-    messages.success(request, "Order cancelled and stock restored.")
-    return redirect('transaction:order_detail', transaction_id=transaction_id)
+    
+    messages.success(request, "Your order has been cancelled and stock has been restored.")
+    return redirect('transaction:order_history')
