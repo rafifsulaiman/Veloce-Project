@@ -1,5 +1,3 @@
-# admindashboard/tests.py
-
 import json
 from decimal import Decimal
 from django.test import TestCase, Client
@@ -11,6 +9,8 @@ from transaction.models import Transaction, AuditLog, OrderItem
 User = get_user_model()
 
 class AdminDashboardViewsTest(TestCase):
+
+    #mengatur client normal user staff super serta produk ukuran transaksi orderitem dan auditlog
     def setUp(self):
         self.client = Client()
 
@@ -74,6 +74,7 @@ class AdminDashboardViewsTest(TestCase):
             user_agent='test-agent'
         )
 
+    #memastikan halaman admin memerlukan staff
     def test_admin_page_requires_staff(self):
         url = reverse('admindashboard:admin_page')
 
@@ -97,6 +98,7 @@ class AdminDashboardViewsTest(TestCase):
         self.assertIn('total_women_products', ctx)
         self.assertIn('total_unisex_products', ctx)
 
+    #memastikan search dan pagination aman terhadap injection dan invalid page
     def test_admin_page_search_and_pagination(self):
         self.client.login(username='super', password='pass')
         url = reverse('admindashboard:admin_page')
@@ -109,6 +111,7 @@ class AdminDashboardViewsTest(TestCase):
         resp = self.client.get(url, {'page': 'notanint'})
         self.assertEqual(resp.status_code, 200)
 
+    #memastikan add_product melakukan rbac dan form handling dengan response yang sesuai
     def test_add_product_rbac_and_form(self):
         url = reverse('admindashboard:add_product')
 
@@ -150,6 +153,7 @@ class AdminDashboardViewsTest(TestCase):
         self.assertTrue(resp.json().get('success'))
         self.assertTrue(Product.objects.filter(product_id='P2').exists())
 
+    #memastikan edit_product memerlukan login dan staff dapat edit dengan JSON
     def test_edit_product_login_required(self):
         url = reverse('admindashboard:edit_product', args=['P1'])
         payload = {'name': 'Edited'}
@@ -165,6 +169,7 @@ class AdminDashboardViewsTest(TestCase):
         self.prod.refresh_from_db()
         self.assertEqual(self.prod.name, 'Edited')
 
+    #memastikan delete_product hanya staff dapat menghapus dan JSON respon sukses
     def test_delete_product_rbac(self):
         url = reverse('admindashboard:delete_product', args=['P1'])
 
@@ -184,6 +189,7 @@ class AdminDashboardViewsTest(TestCase):
         self.assertTrue(resp.json().get('success'))
         self.assertFalse(Product.objects.filter(product_id='P1').exists())
 
+    #memastikan admin_transaction_list melakukan rbac dan filter aman
     def test_admin_transaction_list_rbac_and_filter(self):
         url = reverse('admindashboard:admin_transaction_list')
 
@@ -206,6 +212,7 @@ class AdminDashboardViewsTest(TestCase):
         })
         self.assertEqual(resp.status_code, 200)
 
+    #memastikan admin_transaction_detail menampilkan detail dan redirect jika tidak ada
     def test_admin_transaction_detail_and_notfound(self):
         url = reverse('admindashboard:admin_transaction_detail', args=['T1'])
         self.client.login(username='super', password='pass')
@@ -217,6 +224,7 @@ class AdminDashboardViewsTest(TestCase):
         resp = self.client.get(url2)
         self.assertRedirects(resp, reverse('admindashboard:admin_transaction_list'))
 
+    #memastikan update_transaction_status mengikuti permissions dan method handling
     def test_update_transaction_status_permissions(self):
         url = reverse('admindashboard:admin_update_status', args=['T1'])
 
@@ -238,6 +246,7 @@ class AdminDashboardViewsTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['status'], 'success')
 
+    #memastikan cancel_transaction mengikuti permissions dan method handling
     def test_cancel_transaction_permissions(self):
         url = reverse('admindashboard:admin_cancel_transaction', args=['T1'])
 
@@ -256,6 +265,7 @@ class AdminDashboardViewsTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['status'], 'success')
 
+    #memastikan audit_logs rbac dan filter berfungsi
     def test_audit_logs_rbac_and_filter(self):
         url = reverse('admindashboard:admin_audit_logs')
 
