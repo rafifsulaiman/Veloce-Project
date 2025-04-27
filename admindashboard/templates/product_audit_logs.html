@@ -27,7 +27,7 @@
     
     <!-- Filter and Search Bar -->
     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form method="get" id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label for="action" class="block text-sm font-medium text-gray-700 mb-1">Action Type</label>
                 <select id="action" name="action" class="w-full border border-gray-300 rounded-md px-3 py-2">
@@ -38,16 +38,58 @@
                 </select>
             </div>
             
-            <div>
-                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input type="date" id="start_date" name="start_date" value="{{ filter_start_date }}" 
-                       class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <!-- Date Filter Type Selection -->
+            <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Filter Type</label>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="date_filter_type" value="none" class="form-radio" 
+                               {% if not filter_start_date and not filter_end_date %}checked{% endif %}
+                               onchange="toggleDateFields('none')">
+                        <span class="ml-2">No Date Filter</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="date_filter_type" value="single" class="form-radio"
+                               {% if filter_start_date and filter_start_date == filter_end_date %}checked{% endif %}
+                               onchange="toggleDateFields('single')">
+                        <span class="ml-2">Single Date</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="date_filter_type" value="range" class="form-radio"
+                               {% if filter_start_date and filter_end_date and filter_start_date != filter_end_date %}checked{% endif %}
+                               onchange="toggleDateFields('range')">
+                        <span class="ml-2">Date Range</span>
+                    </label>
+                </div>
             </div>
-            
-            <div>
-                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input type="date" id="end_date" name="end_date" value="{{ filter_end_date }}" 
-                       class="w-full border border-gray-300 rounded-md px-3 py-2">
+
+            <!-- Date Fields Container -->
+            <div id="dateFieldsContainer" class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="singleDateContainer" class="{% if not filter_start_date or filter_start_date != filter_end_date %}hidden{% endif %}">
+                    <label for="single_date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" id="single_date" name="single_date" 
+                           value="{{ filter_start_date }}"
+                           max="{{ today_date|date:'Y-m-d' }}"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                
+                <div id="dateRangeContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 {% if not filter_start_date or filter_start_date == filter_end_date %}hidden{% endif %}">
+                    <div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" 
+                               value="{{ filter_start_date }}"
+                               max="{{ today_date|date:'Y-m-d' }}"
+                               onchange="updateEndDateMin(this.value)"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="date" id="end_date" name="end_date" 
+                               value="{{ filter_end_date }}"
+                               max="{{ today_date|date:'Y-m-d' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                </div>
             </div>
             
             <div>
@@ -173,4 +215,66 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function toggleDateFields(type) {
+    const singleDateContainer = document.getElementById('singleDateContainer');
+    const dateRangeContainer = document.getElementById('dateRangeContainer');
+    const singleDateInput = document.getElementById('single_date');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+
+    // Reset all date inputs
+    singleDateInput.value = '';
+    startDateInput.value = '';
+    endDateInput.value = '';
+
+    switch(type) {
+        case 'none':
+            singleDateContainer.classList.add('hidden');
+            dateRangeContainer.classList.add('hidden');
+            break;
+        case 'single':
+            singleDateContainer.classList.remove('hidden');
+            dateRangeContainer.classList.add('hidden');
+            break;
+        case 'range':
+            singleDateContainer.classList.add('hidden');
+            dateRangeContainer.classList.remove('hidden');
+            break;
+    }
+}
+
+function updateEndDateMin(startDate) {
+    const endDateInput = document.getElementById('end_date');
+    endDateInput.min = startDate;
+    if (endDateInput.value && endDateInput.value < startDate) {
+        endDateInput.value = startDate;
+    }
+}
+
+// Form submission validation
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    const dateFilterType = document.querySelector('input[name="date_filter_type"]:checked').value;
+    
+    if (dateFilterType === 'range') {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            e.preventDefault();
+            alert('Start date cannot be later than end date');
+            return false;
+        }
+    }
+    
+    return true;
+});
+
+// Initialize date fields based on current filter type
+document.addEventListener('DOMContentLoaded', function() {
+    const currentFilterType = document.querySelector('input[name="date_filter_type"]:checked').value;
+    toggleDateFields(currentFilterType);
+});
+</script>
 {% endblock %} 

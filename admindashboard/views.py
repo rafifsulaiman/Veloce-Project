@@ -514,6 +514,8 @@ def admin_audit_logs(request):
     
     # Get filter parameters
     action_type = request.GET.get('action', '')
+    date_filter_type = request.GET.get('date_filter_type', 'none')
+    single_date = request.GET.get('single_date', '')
     start_date = request.GET.get('start_date', '')
     end_date = request.GET.get('end_date', '')
     admin_filter = request.GET.get('admin', '')
@@ -525,17 +527,27 @@ def admin_audit_logs(request):
     if action_type:
         logs = logs.filter(action=action_type)
     
-    if start_date and end_date:
-        try:
+    # Handle date filtering based on type
+    try:
+        if date_filter_type == 'single' and single_date:
+            single_date_obj = datetime.strptime(single_date, '%Y-%m-%d')
+            logs = logs.filter(
+                timestamp__date=single_date_obj.date()
+            )
+        elif date_filter_type == 'range' and start_date and end_date:
             start = datetime.strptime(start_date, '%Y-%m-%d')
             end = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
-            logs = logs.filter(timestamp__range=[start, end])
-        except ValueError:
-            # Invalid date format, ignore the filter
-            pass
+            if start <= end:
+                logs = logs.filter(timestamp__range=[start, end])
+    except ValueError:
+        # Invalid date format, ignore the filter
+        pass
     
     if admin_filter:
         logs = logs.filter(admin_user__username=admin_filter)
+    
+    # Order by most recent first
+    logs = logs.order_by('-timestamp')
     
     # Pagination
     paginator = Paginator(logs, 50)  # Show 50 logs per page
@@ -553,6 +565,7 @@ def admin_audit_logs(request):
         'filter_admin': admin_filter,
         'admin_users': admin_users,
         'action_choices': AuditLog.ACTION_CHOICES,
+        'today_date': datetime.now().date(),
     }
     
     return render(request, 'audit_logs.html', context)
@@ -569,6 +582,8 @@ def admin_product_audit_logs(request):
     
     # Get filter parameters
     action_type = request.GET.get('action', '')
+    date_filter_type = request.GET.get('date_filter_type', 'none')
+    single_date = request.GET.get('single_date', '')
     start_date = request.GET.get('start_date', '')
     end_date = request.GET.get('end_date', '')
     admin_filter = request.GET.get('admin', '')
@@ -581,17 +596,27 @@ def admin_product_audit_logs(request):
     if action_type and action_type in product_actions:
         logs = logs.filter(action=action_type)
     
-    if start_date and end_date:
-        try:
+    # Handle date filtering based on type
+    try:
+        if date_filter_type == 'single' and single_date:
+            single_date_obj = datetime.strptime(single_date, '%Y-%m-%d')
+            logs = logs.filter(
+                timestamp__date=single_date_obj.date()
+            )
+        elif date_filter_type == 'range' and start_date and end_date:
             start = datetime.strptime(start_date, '%Y-%m-%d')
             end = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
-            logs = logs.filter(timestamp__range=[start, end])
-        except ValueError:
-            # Invalid date format, ignore the filter
-            pass
+            if start <= end:
+                logs = logs.filter(timestamp__range=[start, end])
+    except ValueError:
+        # Invalid date format, ignore the filter
+        pass
     
     if admin_filter:
         logs = logs.filter(admin_user__username=admin_filter)
+    
+    # Order by most recent first
+    logs = logs.order_by('-timestamp')
     
     # Pagination
     paginator = Paginator(logs, 50)  # Show 50 logs per page
@@ -611,6 +636,7 @@ def admin_product_audit_logs(request):
         'action_choices': [choice for choice in AuditLog.ACTION_CHOICES if choice[0] in product_actions],
         'page_title': 'Product Audit Logs',
         'back_url': 'admindashboard:admin_page',
+        'today_date': datetime.now().date(),
     }
     
     return render(request, 'product_audit_logs.html', context)
