@@ -87,6 +87,9 @@ class AuditLog(models.Model):
         ('cancel', 'Cancel Transaction'),
         ('unauthorized', 'Unauthorized Access Attempt'),
         ('suspicious', 'Suspicious Activity'),
+        ('add', 'Add Product'),
+        ('edit', 'Edit Product'),
+        ('delete', 'Delete Product'),
     ]
     
     admin_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
