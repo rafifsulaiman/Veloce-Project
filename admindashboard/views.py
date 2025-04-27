@@ -19,16 +19,33 @@ def admin_page(request):
         return redirect('products:catalog')
     
     # Get base queryset
-    products = Product.objects.all().order_by('-created_at')
+    products = Product.objects.all()
     
     # Search functionality
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get('search', '').strip()
     if search_query:
         products = products.filter(
             Q(name__icontains=search_query) | 
             Q(product_id__icontains=search_query) |
             Q(brand__icontains=search_query)
         )
+    
+    # Category filter
+    category = request.GET.get('category', '').strip()
+    if category:
+        products = products.filter(gender=category)
+    
+    # Sorting
+    sort = request.GET.get('sort', 'newest')
+    if sort == 'newest':
+        products = products.order_by('-created_at')
+    elif sort == 'price_asc':
+        products = products.order_by('price')
+    elif sort == 'price_desc':
+        products = products.order_by('-price')
+    else:
+        # Default sorting
+        products = products.order_by('-created_at')
     
     # Pagination
     paginator = Paginator(products, 15)  # Show 15 products per page
@@ -37,8 +54,6 @@ def admin_page(request):
     
     # Get statistics for admin dashboard
     total_stock = sum([size.stock for product in Product.objects.all() for size in product.sizes.all()])
-    brands_count = Product.objects.values('brand').distinct().count()
-    sizes_count = set([size.size for product in Product.objects.all() for size in product.sizes.all()])
     
     # Count products by gender for dashboard cards
     all_products = Product.objects.all()
@@ -47,16 +62,47 @@ def admin_page(request):
     women_products = all_products.filter(gender='women').count()
     unisex_products = all_products.filter(gender='unisex').count()
     
+    # Create context with all necessary data
     context = {
         'products': products_page,
         'total_stock': total_stock,
-        'brands_count': brands_count,
-        'sizes_count': len(sizes_count),
         'total_products': total_products,
         'total_men_products': men_products,
         'total_women_products': women_products,
-        'total_unisex_products': unisex_products
+        'total_unisex_products': unisex_products,
+        # Add filter and search parameters to context for template
+        'search_query': search_query,
+        'selected_category': category,
+        'selected_sort': sort,
+        # Add filter options for template
+        'category_choices': [
+            ('men', 'Men'),
+            ('women', 'Women'),
+            ('unisex', 'Unisex')
+        ],
+        'sort_choices': [
+            ('newest', 'Last Added'),
+            ('price_asc', 'Price: Low to High'),
+            ('price_desc', 'Price: High to Low')
+        ]
     }
+    
+    # Log the filter action if any filters are applied
+    if search_query or category or sort != 'newest':
+        filter_details = []
+        if search_query:
+            filter_details.append(f"Search: '{search_query}'")
+        if category:
+            filter_details.append(f"Category: {category}")
+        if sort != 'newest':
+            sort_display = dict(context['sort_choices'])[sort]
+            filter_details.append(f"Sort: {sort_display}")
+        
+        log_admin_action(
+            request,
+            action='view',
+            details=f"Admin filtered products: {', '.join(filter_details)}"
+        )
     
     return render(request, 'admin_page.html', context)
     
@@ -196,10 +242,7 @@ def edit_product(request, product_id):
 @csrf_exempt
 def delete_product(request, product_id):
     if not request.user.is_staff:
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({'error': "Anda tidak memiliki izin untuk mengakses halaman ini."}, status=403)
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini.")
-        return redirect('products:catalog')
+        return JsonResponse({'error': "Anda tidak memiliki izin untuk mengakses halaman ini."}, status=403)
     
     try:
         product = get_object_or_404(Product, product_id=product_id)
@@ -215,22 +258,16 @@ def delete_product(request, product_id):
         # Delete the product
         product.delete()
         
-        # Return JSON response if this is an AJAX request
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({
-                'status': 'success',
-                'message': f"Product {product_name} has been deleted."
-            })
-        
-        # Otherwise, redirect with a message
-        messages.success(request, f"Produk {product_name} berhasil dihapus.")
-        return redirect('admindashboard:admin_page')
+        return JsonResponse({
+            'success': True,
+            'message': f"Product {product_name} has been deleted."
+        })
         
     except Exception as e:
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({'error': str(e)}, status=400)
-        messages.error(request, f"Error deleting product: {str(e)}")
-        return redirect('admindashboard:admin_page')
+        return JsonResponse({
+            'success': False,
+            'message': f"Error deleting product: {str(e)}"
+        }, status=400)
 
 # Admin transaction management views
 @staff_member_required
@@ -613,17 +650,14 @@ def verify_admin_access_rights(user, permission_key):
     In a real implementation, this would check against a more sophisticated 
     permission system, but for this example, we'll use Django's built-in permissions
     """
-    # All staff users can view transactions
-    if permission_key == 'view_transactions':
-        return user.is_staff
-        
-    # For more sensitive operations, we require specific permissions
+    # Permission mapping to Django's built-in permissions
     permission_mapping = {
+        'view_transactions': user.is_staff,
         'change_transaction_status': 'transaction.change_transaction',
         'cancel_transaction': 'transaction.delete_transaction',
         'view_audit_logs': 'transaction.view_auditlog',
     }
-    
+    # Permission checking logic
     django_permission = permission_mapping.get(permission_key)
     if django_permission:
         return user.has_perm(django_permission)

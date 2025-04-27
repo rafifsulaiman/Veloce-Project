@@ -27,14 +27,12 @@ class Transaction(models.Model):
         ('velocepay', 'VelocePay'),
     ]
     
-    # Fields based on ER Diagram
     transaction_id = models.CharField(max_length=100, unique=True)
     date_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     transaction_amount = models.DecimalField(max_digits=10, decimal_places=2)
     delivery_price = models.DecimalField(max_digits=10, decimal_places=2, default=25000)  # Fixed at Rp 25.000
     
-    # Additional fields for shipping and user information
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     shipping_status = models.CharField(max_length=20, choices=SHIPPING_STATUS_CHOICES, default='processing')
     shipping_address = models.TextField()
