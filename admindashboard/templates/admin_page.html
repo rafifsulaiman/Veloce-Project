@@ -556,6 +556,33 @@
 
 <!-- Scripts -->
 <script>
+    function sanitizeTextInput(input) {
+        input.value = input.value.replace(/[^\w\s\-]/g, '');
+    }
+
+    // Hilangkan tanda kutip dan titik koma di URL
+    function sanitizeURLInput(input) {
+        input.value = input.value.replace(/['";]/g, '');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const editName       = document.getElementById('editName');
+        const editImageUrl   = document.getElementById('editImageUrl');
+
+        if (editName) {
+            editName.addEventListener('input', function() {
+                sanitizeTextInput(this);
+            });
+        }
+
+        if (editImageUrl) {
+            editImageUrl.addEventListener('input', function() {
+                sanitizeURLInput(this);
+                validateImageUrl(this);  // Panggil validasi URL yang sudah ada
+            });
+        }
+    });
+    
 // Notification Functions
 function showNotification(message, type, needsConfirmation = false, onConfirm = null) {
     const wrapper = document.getElementById('notification-wrapper');

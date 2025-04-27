@@ -86,14 +86,16 @@ class AdminDashboardViewsTest(TestCase):
         resp = self.client.get(url)
         self.assertRedirects(resp, reverse('products:catalog'))
 
-        # staff → can view
+        # staff → can view and context has new stats keys
         self.client.login(username='staff', password='pass')
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         ctx = resp.context
         self.assertIn('total_stock', ctx)
-        self.assertIn('brands_count', ctx)
-        self.assertIn('sizes_count', ctx)
+        self.assertIn('total_products', ctx)
+        self.assertIn('total_men_products', ctx)
+        self.assertIn('total_women_products', ctx)
+        self.assertIn('total_unisex_products', ctx)
 
     def test_admin_page_search_and_pagination(self):
         self.client.login(username='super', password='pass')
@@ -128,7 +130,7 @@ class AdminDashboardViewsTest(TestCase):
         # 3) staff POST missing data → form errors 400
         resp = self.client.post(url, {})
         self.assertEqual(resp.status_code, 400)
-        self.assertIn('brand', resp.json().get('error', {}))  # at least one field error
+        self.assertIn('brand', resp.json().get('error', {}))
 
         # 4) staff POST valid payload → success 200 + product exists
         sizes_payload = [
@@ -139,15 +141,13 @@ class AdminDashboardViewsTest(TestCase):
             'brand': 'Adidas',
             'name': 'NewProd',
             'product_id': 'P2',
-            'price': '123',                # must be string for form
+            'price': '123',
             'image_url': 'https://example.com/img.jpg',
             'sizes_data': json.dumps(sizes_payload),
         }
         resp = self.client.post(url, data)
         self.assertEqual(resp.status_code, 200)
-        body = resp.json()
-        self.assertTrue(body.get('success'))
-        # the new Product should be created
+        self.assertTrue(resp.json().get('success'))
         self.assertTrue(Product.objects.filter(product_id='P2').exists())
 
     def test_edit_product_login_required(self):
@@ -168,21 +168,26 @@ class AdminDashboardViewsTest(TestCase):
     def test_delete_product_rbac(self):
         url = reverse('admindashboard:delete_product', args=['P1'])
 
-        # normal user → redirect
+        # normal user → JSON 403 (no redirect)
         self.client.login(username='user', password='pass')
         resp = self.client.post(url)
-        self.assertRedirects(resp, reverse('products:catalog'))
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(
+            resp.json().get('error'),
+            "Anda tidak memiliki izin untuk mengakses halaman ini."
+        )
 
-        # staff → delete & redirect
+        # staff → delete & JSON success
         self.client.login(username='staff', password='pass')
         resp = self.client.post(url)
-        self.assertRedirects(resp, reverse('admindashboard:admin_page'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json().get('success'))
         self.assertFalse(Product.objects.filter(product_id='P1').exists())
 
     def test_admin_transaction_list_rbac_and_filter(self):
         url = reverse('admindashboard:admin_transaction_list')
 
-        # non-staff → 302 to admin login
+        # non-staff → redirect to admin login
         self.client.login(username='user', password='pass')
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 302)
@@ -207,7 +212,7 @@ class AdminDashboardViewsTest(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
 
-        # non-existent
+        # non-existent → redirect to list
         url2 = reverse('admindashboard:admin_transaction_detail', args=['X'])
         resp = self.client.get(url2)
         self.assertRedirects(resp, reverse('admindashboard:admin_transaction_list'))
@@ -215,7 +220,7 @@ class AdminDashboardViewsTest(TestCase):
     def test_update_transaction_status_permissions(self):
         url = reverse('admindashboard:admin_update_status', args=['T1'])
 
-        # normal user → admin login
+        # normal user → redirect to admin:login
         self.client.login(username='user', password='pass')
         resp = self.client.post(url)
         self.assertRedirects(resp, f"{reverse('admin:login')}?next={url}")
@@ -236,7 +241,7 @@ class AdminDashboardViewsTest(TestCase):
     def test_cancel_transaction_permissions(self):
         url = reverse('admindashboard:admin_cancel_transaction', args=['T1'])
 
-        # normal user → admin login
+        # normal user → redirect to admin:login
         self.client.login(username='user', password='pass')
         resp = self.client.post(url)
         self.assertRedirects(resp, f"{reverse('admin:login')}?next={url}")
@@ -254,7 +259,7 @@ class AdminDashboardViewsTest(TestCase):
     def test_audit_logs_rbac_and_filter(self):
         url = reverse('admindashboard:admin_audit_logs')
 
-        # non-staff → admin login
+        # non-staff → redirect to admin:login
         self.client.login(username='user', password='pass')
         resp = self.client.get(url)
         self.assertRedirects(resp, f"{reverse('admin:login')}?next={url}")
