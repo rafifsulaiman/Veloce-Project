@@ -5,7 +5,7 @@
 <title>Admin Dashboard - Veloce</title>
 <style>
     .card {
-        @apply bg-white rounded-lg shadow p-4;
+        @apply bg-white rounded-lg shadow;
     }
     .stat-card {
         @apply bg-white rounded-lg shadow p-4 flex flex-col;
@@ -20,16 +20,31 @@
         @apply bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm;
     }
     .btn-secondary {
-        @apply bg-white hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm border border-gray-300;
+        @apply bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm;
+    }
+    .btn-sm {
+        @apply py-1 px-3 text-sm;
     }
     .product-card {
-        @apply bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 transition-all duration-200;
+        @apply bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-200 border border-gray-100;
     }
     .product-card:hover {
         @apply shadow-md border-gray-200;
     }
     .product-img {
-        @apply w-full h-48 object-cover;
+        @apply w-full h-48 object-cover bg-gray-50;
+    }
+    .product-info {
+        @apply p-4;
+    }
+    .product-name {
+        @apply font-semibold text-gray-800 mb-1 text-base;
+    }
+    .product-price {
+        @apply text-lg font-bold text-gray-900;
+    }
+    .product-id {
+        @apply text-xs text-gray-400 mb-1;
     }
     .gender-badge {
         @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
@@ -43,273 +58,389 @@
     .gender-unisex {
         @apply bg-purple-50 text-purple-600;
     }
+    .action-btn {
+        @apply flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors duration-150 whitespace-nowrap;
+    }
+    .btn-view {
+        @apply bg-[#e0f3b0] text-gray-800 hover:bg-[#d4ef94] border border-[#c8e970];
+    }
+    .btn-edit {
+        @apply bg-[#e0f3b0] text-gray-800 hover:bg-[#d4ef94] flex-1 font-medium;
+    }
+    .btn-delete {
+        @apply bg-red-500 text-white hover:bg-red-600 flex-1 font-medium;
+    }
+    .search-input {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970];
+    }
+    .pagination {
+        @apply flex items-center justify-center mt-8 space-x-2;
+    }
+    .page-item {
+        @apply w-10 h-10 flex items-center justify-center rounded-md border;
+    }
+    .page-item.active {
+        @apply bg-[#e0f3b0] text-gray-800 border-[#c8e970];
+    }
+    .page-link {
+        @apply w-full h-full flex items-center justify-center;
+    }
+    .product-actions {
+        @apply flex gap-2 mt-3;
+    }
+    .product-footer {
+        @apply border-t border-gray-100 px-4 py-3 flex gap-3 mt-2 bg-gray-50;
+    }
+
+    /* Animation for notifications */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     
-    /* Notification styles */
-    #notification-container {
-        @apply fixed top-5 right-5 z-50 flex flex-col items-end space-y-2;
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
     }
-    .notification {
-        padding: 12px 16px;
-        border-radius: 6px;
-        max-width: 350px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        animation: slideIn 0.3s ease-out forwards;
-        margin-bottom: 10px;
-        position: relative;
+    
+    .notification-enter {
+        animation: fadeIn 0.3s ease-out forwards;
     }
-    .notification-success {
-        background-color: #edfcf4;
-        border-left: 4px solid #10b981;
-        color: #065f46;
-    }
-    .notification-info {
-        background-color: #ecf7fe;
-        border-left: 4px solid #3b82f6;
-        color: #1e40af;
-    }
-    .notification-error {
-        background-color: #fef2f2;
-        border-left: 4px solid #ef4444;
-        color: #991b1b;
-    }
-    .notification-warning {
-        background-color: #fffbeb;
-        border-left: 4px solid #f59e0b;
-        color: #92400e;
-    }
-    .notification-icon {
-        margin-right: 12px;
-        flex-shrink: 0;
-    }
-    .notification-message {
-        flex-grow: 1;
-        font-size: 14px;
-        line-height: 1.4;
-    }
-    .notification-close {
-        margin-left: 12px;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
-    .notification-close:hover {
-        opacity: 1;
-    }
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    @keyframes slideOut {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(30px);
-        }
+    
+    .notification-exit {
+        animation: fadeOut 0.3s ease-out forwards;
     }
 </style>
 {% endblock meta %}
 
 {% block content %}
+<!-- Notification Container -->
+<div id="notification-container" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+    <div id="notification-wrapper" class="flex flex-col gap-4 pointer-events-auto"></div>
+</div>
+
 <div class="bg-[#f7f9ee] min-h-screen pb-6">
-    <!-- Notification Container -->
-    <div id="notification-container"></div>
-    
     <div class="container mx-auto px-4 py-6">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
             <h1 class="text-3xl font-bold text-gray-800">Manage Products</h1>
             <div class="flex space-x-3">
-                <a href="{% url 'admindashboard:admin_transaction_list' %}" class="btn-secondary">
+                <a href="{% url 'admindashboard:product_audit_logs' %}" class="bg-white hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm border border-gray-300">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Product Audit Logs
+                </a>
+                <a href="{% url 'admindashboard:admin_transaction_list' %}" class="bg-white hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm border border-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5" />
                     </svg>
                     Manage Transactions
                 </a>
-                <a href="{% url 'admindashboard:product_audit_logs' %}" class="btn-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    Audit Logs
-                </a>
-                <a href="{% url 'admindashboard:add_product' %}" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                <a href="{% url 'admindashboard:add_product' %}" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Product
                 </a>
             </div>
         </div>
 
-        <!-- Notification System Demo -->
-        <div class="card mb-6">
-            <h2 class="text-lg font-bold mb-2">
-                <i class="fas fa-bell mr-2"></i> Notification System Demo
-            </h2>
-            <p class="text-gray-600 mb-4">Click the buttons below to test different notification types:</p>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="showNotification('Success message example', 'success')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                    <i class="fas fa-check-circle"></i> Success
-                </button>
-                <button onclick="showNotification('Information message example', 'info')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                    <i class="fas fa-info-circle"></i> Info
-                </button>
-                <button onclick="showNotification('Warning message example', 'warning')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                    <i class="fas fa-exclamation-triangle"></i> Warning
-                </button>
-                <button onclick="showNotification('Error message example', 'error')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-                    <i class="fas fa-times-circle"></i> Error
-                </button>
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="stat-card">
-                <span class="stat-value">{{ total_products }}</span>
-                <span class="stat-label">Total Products</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">{{ total_men_products }}</span>
-                <span class="stat-label">Men's Products</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">{{ total_women_products }}</span>
-                <span class="stat-label">Women's Products</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">{{ total_unisex_products }}</span>
-                <span class="stat-label">Unisex Products</span>
-            </div>
-        </div>
-
-        <!-- Search and Add Product -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div class="w-full md:w-1/2">
-                <form action="" method="get" class="flex">
-                    <input type="text" name="search" placeholder="Search products..." value="{{ request.GET.search }}" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#c8e970]">
-                    <button type="submit" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 px-4 py-2 rounded-r-md flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </form>
-            </div>
-            <a href="{% url 'admindashboard:add_product' %}" class="btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add New Product
-            </a>
-        </div>
-
-        <!-- Product Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for product in products %}
-            <div class="product-card" data-product-info="{{ product.brand }} {{ product.name }} {{ product.product_id }} {{ product.price }} {{ product.gender }}">
-                <div class="relative">
-                    {% if product.main_image %}
-                    <img src="{{ product.main_image }}" class="product-img" alt="{{ product.name }}">
-                    {% else %}
-                    <div class="w-full h-48 flex items-center justify-center bg-gray-100">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    {% endif %}
-                    <span class="absolute top-2 right-2 gender-badge {% if product.gender == 'men' %}gender-men{% elif product.gender == 'women' %}gender-women{% else %}gender-unisex{% endif %}">
-                        {{ product.get_gender_display }}
-                    </span>
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-2 gap-5 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center">
+                <div class="w-12 h-12 rounded-full bg-[#f0fbd7] flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#92b53f]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
                 </div>
-                <div class="p-4">
-                    <div class="text-xs text-gray-500 mb-1">{{ product.product_id }}</div>
-                    <h3 class="font-semibold text-gray-800 mb-1">{{ product.name }}</h3>
-                    <div class="flex justify-between items-center mt-2">
-                        <span class="font-bold text-gray-900">Rp{{ product.price }}</span>
-                        <span class="text-xs text-gray-500">{{ product.brand }}</span>
-                    </div>
-                    <div class="flex mt-4 space-x-2">
-                        <button onclick="editProduct('{{ product.product_id }}')" class="flex-1 bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 py-2 rounded flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                        </button>
-                        <button data-product-id="{{ product.product_id }}" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete
-                        </button>
-                    </div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-800">{{ products.paginator.count }}</p>
+                    <p class="text-sm text-gray-500">Products</p>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-span-full py-8 text-center text-gray-500">
-                <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                No products found. <a href="{% url 'admindashboard:add_product' %}" class="text-green-500 hover:underline">Add your first product</a>.
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center">
+                <div class="w-12 h-12 rounded-full bg-[#e3f2fd] flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#1d7dcf]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-800">{{ total_stock }}</p>
+                    <p class="text-sm text-gray-500">Total Stock</p>
+                </div>
             </div>
-            {% endfor %}
         </div>
-        
-        <!-- Pagination -->
-        {% if products.paginator.num_pages > 1 %}
-        <div class="flex justify-center mt-8">
-            <nav class="inline-flex rounded-md shadow">
-                {% if products.has_previous %}
-                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span class="sr-only">First</span>
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-                {% endif %}
-                
-                {% for i in products.paginator.page_range %}
-                    {% if products.number == i %}
-                    <span class="relative inline-flex items-center px-4 py-2 border border-[#c8e970] bg-[#e0f3b0] text-sm font-medium text-gray-800">
-                        {{ i }}
-                    </span>
-                    {% elif i > products.number|add:"-3" and i < products.number|add:"3" %}
-                    <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        {{ i }}
-                    </a>
+
+        <!-- Main Content Area -->
+        <div class="card">
+            <!-- Search and Filter Bar -->
+            <div class="p-4 border-b">
+                <div class="flex flex-col gap-4">
+                    <!-- Search Bar -->
+                    <div class="w-full">
+                        <form action="" method="get" class="flex w-full max-w-3xl">
+                            <input 
+                                id="product-search" 
+                                name="search" 
+                                type="text" 
+                                placeholder="Search by product name, ID, or brand..." 
+                                value="{{ request.GET.search }}" 
+                                class="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970] focus:border-transparent"
+                            >
+                            <button type="submit" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 px-6 py-2.5 rounded-r-lg flex items-center justify-center transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <form id="filterForm" class="flex flex-wrap gap-4 items-center" method="get">
+                            <!-- Preserve search parameter if exists -->
+                            {% if request.GET.search %}
+                            <input type="hidden" name="search" value="{{ request.GET.search }}">
+                            {% endif %}
+                            
+                            <!-- Category Filter -->
+                            <div class="relative min-w-[200px]">
+                                <select 
+                                    name="category" 
+                                    class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#c8e970] focus:border-transparent cursor-pointer"
+                                >
+                                    <option value="">All Categories</option>
+                                    <option value="men" {% if request.GET.category == 'men' %}selected{% endif %}>Men</option>
+                                    <option value="women" {% if request.GET.category == 'women' %}selected{% endif %}>Women</option>
+                                    <option value="unisex" {% if request.GET.category == 'unisex' %}selected{% endif %}>Unisex</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Sort Filter -->
+                            <div class="relative min-w-[200px]">
+                                <select 
+                                    name="sort" 
+                                    class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#c8e970] focus:border-transparent cursor-pointer"
+                                >
+                                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Last Added</option>
+                                    <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Apply Filter Button -->
+                            <button 
+                                type="submit" 
+                                class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                </svg>
+                                Apply Filters
+                            </button>
+
+                            {% if request.GET.category or request.GET.sort %}
+                            <!-- Clear Filters Button -->
+                            <a 
+                                href="{% url 'admindashboard:admin_page' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" 
+                                class="text-gray-600 hover:text-gray-800 px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors border border-gray-300 hover:bg-gray-50"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Clear Filters
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+
+                    {% if request.GET.category or request.GET.sort or request.GET.search %}
+                    <!-- Active Filters -->
+                    <div class="flex flex-wrap gap-2 items-center text-sm">
+                        <span class="text-gray-600">Active filters:</span>
+                        {% if request.GET.search %}
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                            Search: "{{ request.GET.search }}"
+                        </span>
+                        {% endif %}
+                        {% if request.GET.category %}
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                            Category: {{ request.GET.category|title }}
+                        </span>
+                        {% endif %}
+                        {% if request.GET.sort %}
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                            Sort: {% if request.GET.sort == 'newest' %}Last Added
+                            {% elif request.GET.sort == 'price_asc' %}Price: Low to High
+                            {% elif request.GET.sort == 'price_desc' %}Price: High to Low{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
                     {% endif %}
-                {% endfor %}
-                
-                {% if products.has_next %}
-                <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span class="sr-only">Last</span>
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-                {% endif %}
-            </nav>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="p-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                    {% for product in products %}
+                    <div class="product-item bg-white rounded-md shadow-sm overflow-hidden border border-gray-100 relative flex flex-col h-[360px]" data-product-info="{{ product.brand }} {{ product.name }} {{ product.product_id }} {{ product.price }} {{ product.gender }}">
+                        {% if product.has_low_stock %}
+                        <div class="absolute top-2 right-2 z-10 bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                            Low Stock
+                        </div>
+                        {% endif %}
+                        
+                        {% if product.main_image %}
+                        <div class="h-48 overflow-hidden">
+                            <img src="{{ product.main_image }}" class="w-full h-48 object-cover bg-gray-50" onerror="this.src='https://i.imgur.com/qCP9R4y.jpeg';">
+                        </div>
+                        {% else %}
+                        <div class="w-full h-48 flex items-center justify-center bg-gray-50">
+                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="px-3 py-2 flex-grow">
+                            <h3 class="text-gray-900 font-medium text-sm truncate">{{ product.name }}</h3>
+                            <p class="text-xs text-gray-500">{{ product.product_id }}</p>
+                            <div class="mt-1.5 mb-2">
+                                <span class="font-bold text-gray-900">Rp{{ product.price }}</span>
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {% if product.gender == 'men' %}bg-blue-50 text-blue-600{% elif product.gender == 'women' %}bg-pink-50 text-pink-600{% else %}bg-purple-50 text-purple-600{% endif %}">
+                                    {{ product.get_gender_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex border-t border-gray-100 mt-auto">
+                            <button onclick="editProduct('{{ product.product_id }}')" class="flex-1 py-2 text-sm font-medium text-center flex items-center justify-center text-gray-800 bg-[#e0f3b0] hover:bg-[#d4ef94] transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Edit
+                            </button>
+                            <button data-product-id="{{ product.product_id }}" class="flex-1 py-2 text-sm font-medium text-center flex items-center justify-center text-white bg-red-500 hover:bg-red-600 transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full py-8 text-center text-gray-500">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        No products found. <a href="{% url 'admindashboard:add_product' %}" class="text-green-500 hover:underline">Add your first product</a>.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            {% if products.paginator.num_pages > 1 %}
+            <div class="border-t border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        Showing {{ products.start_index }} to {{ products.end_index }} of {{ products.paginator.count }} products
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if products.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                            </svg>
+                        </a>
+                        <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="inline-flex items-center px-4 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
+                            Previous
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                            </svg>
+                        </span>
+                        <span class="inline-flex items-center px-4 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
+                            Previous
+                        </span>
+                        {% endif %}
+                        
+                        <div class="hidden md:flex items-center space-x-1">
+                            {% for i in products.paginator.page_range %}
+                                {% if products.number == i %}
+                                <span class="inline-flex items-center px-3 py-1.5 bg-[#e0f3b0] text-gray-800 font-medium rounded-md">
+                                    {{ i }}
+                                </span>
+                                {% elif i == 1 or i == products.paginator.num_pages or i >= products.number|add:"-1" and i <= products.number|add:"1" %}
+                                <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
+                                    {{ i }}
+                                </a>
+                                {% elif i == products.number|add:"-2" or i == products.number|add:"2" %}
+                                <span class="inline-flex items-center px-2 py-1.5 text-gray-500">
+                                    ...
+                                </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="md:hidden flex items-center">
+                            <span class="px-3 py-1.5 text-gray-700 font-medium">
+                                {{ products.number }} of {{ products.paginator.num_pages }}
+                            </span>
+                        </div>
+                        
+                        {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="inline-flex items-center px-4 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
+                            Next
+                        </a>
+                        <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
+                            Next
+                        </span>
+                        <span class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                            </svg>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 
 <!-- Edit Product Modal -->
 <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-[700px] max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-[700px] max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-semibold">Edit Product</h3>
-            <button type="button" onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+            <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -323,21 +454,15 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="editBrand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                    <select id="editBrand" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#c8e970] focus:border-[#c8e970]">
+                    <select id="editBrand" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
                         <option value="Nike">Nike</option>
                         <option value="Adidas">Adidas</option>
-                        <option value="New Balance">New Balance</option>
-                        <option value="Puma">Puma</option>
-                        <option value="Reebok">Reebok</option>
-                        <option value="Converse">Converse</option>
-                        <option value="Vans">Vans</option>
-                        <option value="Others">Others</option>
                     </select>
                 </div>
                 
                 <div>
                     <label for="editGender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                    <select id="editGender" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#c8e970] focus:border-[#c8e970]">
+                    <select id="editGender" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
                         <option value="men">Men</option>
                         <option value="women">Women</option>
                         <option value="unisex">Unisex</option>
@@ -347,18 +472,14 @@
             
             <div>
                 <label for="editName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input type="text" id="editName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#c8e970] focus:border-[#c8e970]">
+                <input type="text" id="editName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="editProductID" class="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
-                    <input type="text" id="editProductID" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
-                </div>
+            <div class="grid grid-cols gap-4">
                 
                 <div>
                     <label for="editPrice" class="block text-sm font-medium text-gray-700 mb-1">Price (Rp)</label>
-                    <input type="number" id="editPrice" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#c8e970] focus:border-[#c8e970]">
+                    <input type="number" id="editPrice" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
                 </div>
             </div>
             
@@ -366,11 +487,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Sizes and Stock</label>
                 <div class="border border-gray-300 rounded-md overflow-hidden mb-2">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-green-50">
                             <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Size</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Stock</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Action</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Size</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Stock</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
                         <tbody id="sizesTableBody" class="bg-white divide-y divide-gray-200">
@@ -378,6 +499,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="sizesError" class="hidden text-red-500 text-sm mt-1 mb-2"></div>
                 <button type="button" onclick="addSizeRow()" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -388,17 +510,23 @@
             
             <div>
                 <label for="editImageUrl" class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                <input type="text" id="editImageUrl" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#c8e970] focus:border-[#c8e970] mb-2">
+                <input 
+                    type="text" 
+                    id="editImageUrl" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-1"
+                    oninput="validateImageUrl(this)"
+                >
+                <div id="imageUrlError" class="hidden text-red-500 text-sm mt-1 mb-2"></div>
                 <div id="imagePreview" class="mt-2 flex justify-center">
                     <!-- Image preview will be shown here -->
                 </div>
             </div>
             
-            <div class="flex justify-end pt-4">
-                <button type="button" onclick="closeEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2">
+            <div class="flex justify-end pt-5">
+                <button type="button" onclick="closeEditModal()" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mr-2">
                     Cancel
                 </button>
-                <button type="submit" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 px-4 py-2 rounded">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     Save Changes
                 </button>
             </div>
@@ -406,332 +534,567 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-[400px] shadow-xl">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+        </div>
+        <div class="mb-6">
+            <p class="text-gray-700">Are you sure you want to delete this product?</p>
+        </div>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md">
+                Cancel
+            </button>
+            <button type="button" id="confirmDeleteBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
 <script>
-    // Notification system
-    function showNotification(message, type = 'success', duration = 5000) {
-        const container = document.getElementById('notification-container');
+// Notification Functions
+function showNotification(message, type, needsConfirmation = false, onConfirm = null) {
+    const wrapper = document.getElementById('notification-wrapper');
+    const container = document.getElementById('notification-container');
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-enter max-w-sm w-full p-4 rounded-lg shadow-xl flex flex-col gap-3 ${
+        type === 'success' ? 'bg-white border-l-4 border-green-500' :
+        type === 'error' ? 'bg-white border-l-4 border-red-500' :
+        'bg-white border-l-4 border-yellow-500'
+    }`;
+    
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'flex items-start gap-3';
+    
+    // Create icon based on type
+    const icon = document.createElement('div');
+    icon.className = `flex-shrink-0 ${
+        type === 'success' ? 'text-green-500' :
+        type === 'error' ? 'text-red-500' :
+        'text-yellow-500'
+    }`;
+    icon.innerHTML = type === 'success' ? `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+    ` : type === 'error' ? `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    ` : `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+    `;
+    
+    // Create message text
+    const text = document.createElement('p');
+    text.className = 'text-gray-800 font-medium flex-1';
+    text.textContent = message;
+    
+    // Add icon and text to message container
+    messageContainer.appendChild(icon);
+    messageContainer.appendChild(text);
+    notification.appendChild(messageContainer);
+    
+    // Add button if confirmation is needed
+    if (needsConfirmation) {
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'flex justify-end mt-2';
         
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
+        const okayBtn = document.createElement('button');
+        okayBtn.className = `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            type === 'success' ? 'bg-green-500 hover:bg-green-600 text-white' :
+            type === 'error' ? 'bg-red-500 hover:bg-red-600 text-white' :
+            'bg-yellow-500 hover:bg-yellow-600 text-white'
+        }`;
+        okayBtn.textContent = 'Okay';
         
-        // Set icon based on type
-        let iconSvg = '';
-        switch(type) {
-            case 'success':
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>`;
-                break;
-            case 'error':
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>`;
-                break;
-            case 'info':
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>`;
-                break;
-            case 'warning':
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>`;
-                break;
-        }
-        
-        // Add content to notification
-        notification.innerHTML = `
-            <div class="notification-icon">${iconSvg}</div>
-            <div class="notification-message">${message}</div>
-            <div class="notification-close" onclick="this.parentElement.remove()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </div>
-        `;
-        
-        // Append to container
-        container.appendChild(notification);
-        
-        // Auto-remove after duration
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-in forwards';
+        okayBtn.onclick = () => {
+            notification.classList.replace('notification-enter', 'notification-exit');
             setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
+                notification.remove();
+                if (wrapper.children.length === 0) {
+                    container.classList.add('pointer-events-none');
+                }
+                if (onConfirm) onConfirm();
+            }, 300);
+        };
+        
+        btnContainer.appendChild(okayBtn);
+        notification.appendChild(btnContainer);
+    } else {
+        // Auto remove after 3 seconds if no confirmation needed
+        setTimeout(() => {
+            notification.classList.replace('notification-enter', 'notification-exit');
+            setTimeout(() => {
+                notification.remove();
+                if (wrapper.children.length === 0) {
+                    container.classList.add('pointer-events-none');
                 }
             }, 300);
-        }, duration);
-        
-        return notification;
-    }
-
-    function editProduct(productId) {
-        console.log("Editing product:", productId);  
-        fetch(`/products/get-product/${productId}/`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('editProductId').value = productId;
-                document.getElementById('editName').value = data.name;
-                document.getElementById('editBrand').value = data.brand;
-                document.getElementById('editPrice').value = data.price;
-                document.getElementById('editGender').value = data.gender;
-                document.getElementById('editProductID').value = data.product_id;
-                
-                const sizeTableBody = document.getElementById('sizesTableBody');
-                sizeTableBody.innerHTML = '';
-                
-                if (Array.isArray(data.sizes)) {
-                    data.sizes.forEach(sizeData => {
-                        addSizeRow(sizeData.size, sizeData.stock);
-                    });
-                }
-                
-                document.getElementById('editImageUrl').value = data.image_url;
-                
-                updateImagePreview(data.image_url);
-                
-                openEditModal();
-            })
-            .catch(error => {
-                console.error('Error fetching product data:', error);
-                showNotification('Failed to load product data: ' + error.message, 'error');
-            });
-    }
-
-    function updateImagePreview(url) {
-        const previewContainer = document.getElementById('imagePreview');
-        previewContainer.innerHTML = '';
-        
-        try {
-            // Try to parse as JSON array
-            const images = JSON.parse(url);
-            if (Array.isArray(images) && images.length > 0) {
-                const img = document.createElement('img');
-                img.src = images[0];
-                img.className = 'h-32 object-cover rounded';
-                img.onerror = function() { this.src = 'https://i.imgur.com/qCP9R4y.jpeg'; }
-                previewContainer.appendChild(img);
-                return;
-            }
-        } catch (e) {
-            // Not JSON, treat as single URL
-        }
-        
-        // Single URL
-        if (url) {
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'h-32 object-cover rounded';
-            img.onerror = function() { this.src = 'https://i.imgur.com/qCP9R4y.jpeg'; }
-            previewContainer.appendChild(img);
-        }
-    }
-
-    function addSizeRow(size = '', stock = 0) {
-        const tbody = document.getElementById('sizesTableBody');
-        const rowCount = tbody.rows.length;
-        const row = tbody.insertRow();
-        
-        // Size input
-        const sizeCell = row.insertCell(0);
-        const sizeInput = document.createElement('input');
-        sizeInput.type = 'number';
-        sizeInput.name = `sizes[${rowCount}][size]`;
-        sizeInput.value = size;
-        sizeInput.min = '16';
-        sizeInput.max = '60';
-        sizeInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-[#c8e970] focus:border-[#c8e970]';
-        sizeCell.appendChild(sizeInput);
-        
-        // Stock input
-        const stockCell = row.insertCell(1);
-        const stockInput = document.createElement('input');
-        stockInput.type = 'number';
-        stockInput.name = `sizes[${rowCount}][stock]`;
-        stockInput.value = stock;
-        stockInput.min = '0';
-        stockInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-[#c8e970] focus:border-[#c8e970]';
-        stockCell.appendChild(stockInput);
-        
-        // Delete button
-        const actionCell = row.insertCell(2);
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm';
-        deleteBtn.textContent = 'Remove';
-        deleteBtn.onclick = function() { row.remove(); };
-        actionCell.appendChild(deleteBtn);
-    }
-
-    function openEditModal() {
-        document.getElementById('editModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        }, 3000);
     }
     
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
+    // Add notification to wrapper
+    wrapper.appendChild(notification);
+    container.classList.remove('pointer-events-none');
+}
 
-    // Document ready
-    document.addEventListener("DOMContentLoaded", function() {
-        // Create notification container if it doesn't exist
-        if (!document.getElementById('notification-container')) {
-            const container = document.createElement('div');
-            container.id = 'notification-container';
-            document.body.appendChild(container);
-        }
-        
-        // Set up event delegation for delete buttons
-        document.addEventListener('click', function(e) {
-            const deleteBtn = e.target.closest('[data-product-id]');
-            if (deleteBtn) {
-                e.preventDefault();
-                const productId = deleteBtn.getAttribute('data-product-id');
-                if (confirm('Are you sure you want to delete this product?')) {
-                    deleteProduct(productId);
+function showSuccessMessage(message, needsRefresh = false) {
+    showNotification(message, 'success', needsRefresh, async () => {
+        if (needsRefresh) {
+            try {
+                // Fetch updated content
+                const response = await fetch(window.location.pathname + window.location.search);
+                const html = await response.text();
+                
+                // Create a temporary container
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Update product grid
+                const currentProductsContainer = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-3.xl\\:grid-cols-3.gap-5');
+                const newProductsContainer = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-3.xl\\:grid-cols-3.gap-5');
+                
+                if (currentProductsContainer && newProductsContainer) {
+                    currentProductsContainer.innerHTML = newProductsContainer.innerHTML;
                 }
+
+                // Update statistics
+                // Update total products (first statistic card)
+                const currentProductCount = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm.border.border-gray-100.flex.items-center:first-of-type .text-3xl.font-bold');
+                const newProductCount = temp.querySelector('.bg-white.p-5.rounded-lg.shadow-sm.border.border-gray-100.flex.items-center:first-of-type .text-3xl.font-bold');
+                
+                if (currentProductCount && newProductCount) {
+                    console.log('Updating product count:', newProductCount.textContent);
+                    currentProductCount.textContent = newProductCount.textContent;
+                } else {
+                    console.log('Product count elements not found');
+                }
+
+                // Update total stock (second statistic card)
+                const currentStockCount = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm.border.border-gray-100.flex.items-center:nth-of-type(2) .text-3xl.font-bold');
+                const newStockCount = temp.querySelector('.bg-white.p-5.rounded-lg.shadow-sm.border.border-gray-100.flex.items-center:nth-of-type(2) .text-3xl.font-bold');
+                
+                if (currentStockCount && newStockCount) {
+                    console.log('Updating stock count:', newStockCount.textContent);
+                    currentStockCount.textContent = newStockCount.textContent;
+                } else {
+                    console.log('Stock count elements not found');
+                }
+
+                // Update pagination if exists
+                const currentPagination = document.querySelector('.flex.items-center.justify-between');
+                const newPagination = temp.querySelector('.flex.items-center.justify-between');
+                if (currentPagination && newPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+
+                // Reinitialize event listeners
+                initializeEventListeners();
+            } catch (error) {
+                console.error('Error refreshing content:', error);
+                location.reload();
             }
-        });
-        
-        // Setup the edit form submission
-        const editForm = document.getElementById('editForm');
-        if (editForm) {
-            editForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                const productId = document.getElementById('editProductId').value;
-                
-                // Collect form values
-                const name = document.getElementById('editName').value;
-                const brand = document.getElementById('editBrand').value;
-                const price = document.getElementById('editPrice').value;
-                const gender = document.getElementById('editGender').value;
-                const imageUrl = document.getElementById('editImageUrl').value;
-                
-                // Collect size and stock data
-                const sizesData = [];
-                const sizeRows = document.querySelectorAll('#sizesTableBody tr');
-                sizeRows.forEach(row => {
-                    const sizeInput = row.querySelector('input[name^="sizes"][name$="[size]"]');
-                    const stockInput = row.querySelector('input[name^="sizes"][name$="[stock]"]');
-                    
-                    if (sizeInput && stockInput && sizeInput.value) {
-                        sizesData.push({
-                            size: parseInt(sizeInput.value),
-                            stock: parseInt(stockInput.value || 0)
-                        });
-                    }
-                });
-                
-                // Create data object for submission
-                const formData = {
-                    name: name,
-                    brand: brand,
-                    price: price,
-                    gender: gender,
-                    sizes: sizesData,
-                    image_url: imageUrl
-                };
-                
-                // Send data to server
-                fetch(`/admindashboard/edit-product/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken()
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    closeEditModal();
-                    
-                    if (data.message) {
-                        // Show success notification
-                        showNotification(data.message, 'success');
-                        
-                        // Reload page after short delay to show updated data
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        showNotification(data.error || 'Unknown error occurred', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error("Error updating product:", error);
-                    closeEditModal();
-                    showNotification('Error updating product: ' + error.message, 'error');
-                });
-            });
-        }
-        
-        // Set up image URL preview
-        const imageUrlInput = document.getElementById('editImageUrl');
-        if (imageUrlInput) {
-            imageUrlInput.addEventListener('change', function() {
-                updateImagePreview(this.value);
-            });
-            imageUrlInput.addEventListener('input', function() {
-                updateImagePreview(this.value);
-            });
         }
     });
-    
-    function getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]').value;
-    }
-    
-    function deleteProduct(productId) {
-        fetch(`/admindashboard/delete-product/${productId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ productId: productId })
-        })
+}
+
+function showErrorMessage(message) {
+    showNotification(message, 'error', true);
+}
+
+function showWarningMessage(message) {
+    showNotification(message, 'warning', true);
+}
+
+// Product Management Functions
+let productIdToDelete = null;
+
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function editProduct(productId) {
+    console.log("🔹 Editing product:", productId);  
+    fetch(`/products/get-product/${productId}/`)
         .then(response => response.json())
         .then(data => {
-            showNotification(data.message || 'Product deleted successfully!', 'success');
+            document.getElementById('editProductId').value = productId;
+            document.getElementById('editProductId').readOnly = true;
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editBrand').value = data.brand;
+            document.getElementById('editPrice').value = data.price;
+            document.getElementById('editGender').value = data.gender;
             
-            // Remove the product from DOM
-            const productCards = document.querySelectorAll('.product-card');
-            for (let card of productCards) {
-                const info = card.getAttribute('data-product-info') || '';
-                if (info.includes(productId)) {
-                    card.style.opacity = '0';
-                    card.style.transform = 'scale(0.8)';
-                    setTimeout(() => {
-                        card.remove();
-                        
-                        // If no products left, show empty message
-                        if (document.querySelectorAll('.product-card').length === 0) {
-                            const gridContainer = document.querySelector('.grid');
-                            if (gridContainer) {
-                                const emptyMsg = document.createElement('div');
-                                emptyMsg.className = 'col-span-full py-8 text-center text-gray-500';
-                                emptyMsg.innerHTML = `
-                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                                    </svg>
-                                    No products found. <a href="{% url 'admindashboard:add_product' %}" class="text-green-500 hover:underline">Add your first product</a>.
-                                `;
-                                gridContainer.appendChild(emptyMsg);
-                            }
-                        }
-                    }, 300);
-                    break;
-                }
+            const sizeTableBody = document.getElementById('sizesTableBody');
+            sizeTableBody.innerHTML = '';
+            
+            if (Array.isArray(data.sizes)) {
+                data.sizes.forEach(sizeData => {
+                    addSizeRow(sizeData.size, sizeData.stock);
+                });
             }
+            
+            document.getElementById('editImageUrl').value = data.image_url;
+            updateImagePreview(data.image_url);
+            openEditModal();
         })
         .catch(error => {
-            console.error('Error deleting product:', error);
-            showNotification('Error deleting product: ' + error.message, 'error');
+            console.error('Error fetching product data:', error);
+            showErrorMessage('Error fetching product data');
+        });
+}
+
+function updateImagePreview(url) {
+    const previewContainer = document.getElementById('imagePreview');
+    const errorDiv = document.getElementById('imageUrlError');
+    previewContainer.innerHTML = '';
+    
+    if (url) {
+        const imageUrlLower = url.toLowerCase();
+        if (!imageUrlLower.endsWith('.jpg') && !imageUrlLower.endsWith('.jpeg') && !imageUrlLower.endsWith('.png')) {
+            errorDiv.textContent = 'Image URL must end with .jpg, .jpeg, or .png';
+            errorDiv.classList.remove('hidden');
+            document.getElementById('editImageUrl').classList.add('border-red-500');
+            return;
+        }
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'h-32 object-cover rounded';
+        img.onerror = function() {
+            this.src = 'https://i.imgur.com/qCP9R4y.jpeg';
+            errorDiv.textContent = 'Invalid image URL';
+            errorDiv.classList.remove('hidden');
+            document.getElementById('editImageUrl').classList.add('border-red-500');
+        };
+        img.onload = function() {
+            errorDiv.classList.add('hidden');
+            document.getElementById('editImageUrl').classList.remove('border-red-500');
+        };
+        previewContainer.appendChild(img);
+    }
+}
+
+function addSizeRow(size = '', stock = 0) {
+    const tbody = document.getElementById('sizesTableBody');
+    const rowCount = tbody.rows.length;
+    const row = tbody.insertRow();
+    
+    // Size input
+    const sizeCell = row.insertCell(0);
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'number';
+    sizeInput.name = `sizes[${rowCount}][size]`;
+    sizeInput.value = size;
+    sizeInput.min = 16;
+    sizeInput.max = 60;
+    sizeInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md';
+    sizeInput.addEventListener('input', function() {
+        if (this.value < 16) this.value = 16;
+        if (this.value > 60) this.value = 60;
+    });
+    sizeCell.appendChild(sizeInput);
+    
+    // Stock input
+    const stockCell = row.insertCell(1);
+    const stockInput = document.createElement('input');
+    stockInput.type = 'number';
+    stockInput.name = `sizes[${rowCount}][stock]`;
+    stockInput.value = stock;
+    stockInput.min = 0;
+    stockInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md';
+    stockInput.addEventListener('input', function() {
+        if (this.value < 0) this.value = 0;
+    });
+    stockCell.appendChild(stockInput);
+    
+    // Delete button
+    const actionCell = row.insertCell(2);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-sm';
+    deleteBtn.textContent = 'Remove';
+    deleteBtn.onclick = function() { row.remove(); };
+    actionCell.appendChild(deleteBtn);
+}
+
+function openEditModal() {
+    document.getElementById('editModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Delete Product Functions
+function openDeleteModal(productId) {
+    productIdToDelete = productId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.body.style.overflow = '';
+    productIdToDelete = null;
+}
+
+function deleteProduct(productId) {
+    fetch(`/admindashboard/delete-product/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        closeDeleteModal(); // Close the modal first
+        if (data.success) {
+            showSuccessMessage('Product deleted successfully', true);
+        } else {
+            showErrorMessage(data.message || 'Error deleting product');
+        }
+    })
+    .catch(error => {
+        closeDeleteModal(); // Close the modal on error too
+        showErrorMessage('Error deleting product');
+        console.error('Error:', error);
+    });
+}
+
+// Validation Functions
+function validateImageUrl(input) {
+    const errorDiv = document.getElementById('imageUrlError');
+    const imageUrl = input.value.trim();
+    
+    if (imageUrl) {
+        const imageUrlLower = imageUrl.toLowerCase();
+        if (!imageUrlLower.endsWith('.jpg') && !imageUrlLower.endsWith('.jpeg') && !imageUrlLower.endsWith('.png')) {
+            errorDiv.textContent = 'Image URL must end with .jpg, .jpeg, or .png';
+            errorDiv.classList.remove('hidden');
+            input.classList.add('border-red-500');
+            return false;
+        }
+    }
+    
+    errorDiv.classList.add('hidden');
+    input.classList.remove('border-red-500');
+    return true;
+}
+
+function validateProductForm() {
+    // Get form elements
+    const name = document.getElementById('editName').value.trim();
+    const price = parseFloat(document.getElementById('editPrice').value);
+    const imageUrl = document.getElementById('editImageUrl');
+    const sizesTableBody = document.getElementById('sizesTableBody');
+    const sizeRows = sizesTableBody.getElementsByTagName('tr');
+    const sizesError = document.getElementById('sizesError');
+    
+    // Reset previous error states
+    document.getElementById('imageUrlError').classList.add('hidden');
+    imageUrl.classList.remove('border-red-500');
+    sizesError.classList.add('hidden');
+    sizesTableBody.closest('.border').classList.remove('border-red-500');
+    
+    // Validate name
+    if (!name) {
+        showErrorMessage('Product name is required');
+        return false;
+    }
+    
+    // Validate price
+    if (isNaN(price) || price <= 0) {
+        showErrorMessage('Price must be greater than 0');
+        return false;
+    }
+    
+    // Validate image URL
+    if (!validateImageUrl(imageUrl)) {
+        return false;
+    }
+    
+    // Validate sizes and stock
+    if (sizeRows.length === 0) {
+        sizesError.textContent = 'At least one size must be added';
+        sizesError.classList.remove('hidden');
+        sizesTableBody.closest('.border').classList.add('border-red-500');
+        return false;
+    }
+
+    let hasSizes = false;
+    let hasInvalidSize = false;
+    let hasInvalidStock = false;
+    
+    for (let row of sizeRows) {
+        const sizeInput = row.querySelector('input[name^="sizes"][name$="[size]"]');
+        const stockInput = row.querySelector('input[name^="sizes"][name$="[stock]"]');
+        
+        if (sizeInput && stockInput) {
+            const size = parseInt(sizeInput.value);
+            const stock = parseInt(stockInput.value || 0);
+            
+            // Reset input states
+            sizeInput.classList.remove('border-red-500');
+            stockInput.classList.remove('border-red-500');
+            
+            // Validate size range
+            if (isNaN(size) || size < 16 || size > 60) {
+                sizeInput.classList.add('border-red-500');
+                hasInvalidSize = true;
+            }
+            
+            // Validate stock (non-negative)
+            if (isNaN(stock) || stock < 0) {
+                stockInput.classList.add('border-red-500');
+                hasInvalidStock = true;
+            }
+            
+            if (!isNaN(size) && !isNaN(stock) && size >= 16 && size <= 60 && stock >= 0) {
+                hasSizes = true;
+            }
+        }
+    }
+    
+    if (hasInvalidSize || hasInvalidStock || !hasSizes) {
+        let errorMessage = '';
+        if (hasInvalidSize) {
+            errorMessage += 'Size must be between 16 and 60. ';
+        }
+        if (hasInvalidStock) {
+            errorMessage += 'Stock cannot be negative. ';
+        }
+        if (!hasSizes && !hasInvalidSize && !hasInvalidStock) {
+            errorMessage = 'At least one valid size and stock must be added';
+        }
+        sizesError.textContent = errorMessage.trim();
+        sizesError.classList.remove('hidden');
+        sizesTableBody.closest('.border').classList.add('border-red-500');
+        return false;
+    }
+    
+    return true;
+}
+
+// Function to initialize event listeners for dynamic content
+function initializeEventListeners() {
+    // Re-attach delete button listeners
+    document.querySelectorAll('button[data-product-id]').forEach(button => {
+        button.onclick = (e) => {
+            e.preventDefault();
+            const productId = button.getAttribute('data-product-id');
+            openDeleteModal(productId);
+        };
+    });
+
+    // Re-attach edit button listeners
+    document.querySelectorAll('button[onclick*="editProduct"]').forEach(button => {
+        const onclickAttr = button.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/editProduct\('([^']+)'\)/);
+            if (match) {
+                const productId = match[1];
+                button.onclick = (e) => {
+                    e.preventDefault();
+                    editProduct(productId);
+                };
+            }
+        }
+    });
+}
+
+// Modified form submission handler
+document.addEventListener("DOMContentLoaded", function () {
+    initializeEventListeners();
+    
+    const editForm = document.getElementById('editForm');
+    
+    if (editForm) {
+        editForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            
+            if (!validateProductForm()) {
+                return;
+            }
+            
+            const productId = document.getElementById('editProductId').value;
+            
+            // Collect form values
+            const formData = {
+                name: document.getElementById('editName').value.trim(),
+                brand: document.getElementById('editBrand').value,
+                price: parseFloat(document.getElementById('editPrice').value),
+                gender: document.getElementById('editGender').value,
+                image_url: document.getElementById('editImageUrl').value.trim(),
+                sizes: []
+            };
+            
+            // Collect size and stock data
+            const sizeRows = document.querySelectorAll('#sizesTableBody tr');
+            sizeRows.forEach(row => {
+                const sizeInput = row.querySelector('input[name^="sizes"][name$="[size]"]');
+                const stockInput = row.querySelector('input[name^="sizes"][name$="[stock]"]');
+                
+                if (sizeInput && stockInput && sizeInput.value) {
+                    formData.sizes.push({
+                        size: parseInt(sizeInput.value),
+                        stock: parseInt(stockInput.value || 0)
+                    });
+                }
+            });
+
+            // Send data to server
+            fetch(`/admindashboard/edit-product/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    closeEditModal();
+                    showSuccessMessage('Product updated successfully!', true);
+                } else {
+                    showErrorMessage('Failed to update product: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error("Error updating product:", error);
+                showErrorMessage('Error updating product');
+            });
         });
     }
+
+    // Set up delete confirmation
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (productIdToDelete) {
+            deleteProduct(productIdToDelete);
+            closeDeleteModal();
+        }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+});
 </script>
-{% endblock %}
+{% endblock content %}
