@@ -198,16 +198,8 @@ def process_payment(request, transaction_id):
             txn.status = 'processing'
             txn.save()
             
-            # Update stock
-            for item in txn.items.all():
-                product_size = ProductSize.objects.select_for_update().get(
-                    product=item.product,
-                    size=item.size
-                )
-                
-                # Reduce stock
-                product_size.stock -= item.quantity
-                product_size.save()
+            # Note: Stock reduction has already happened during checkout_confirm
+            # We don't need to reduce stock again here
         
         messages.success(request, "Pembayaran berhasil! Pesanan Anda sedang diproses.")
         return redirect('transaction:order_detail', transaction_id=transaction_id)
@@ -224,8 +216,12 @@ def transaction_success(request, transaction_id):
     except Transaction.DoesNotExist:
         raise Http404("Transaction not found")
     
+    # Get order items
+    transaction_items = transaction_obj.items.all()
+    
     context = {
         'transaction': transaction_obj,
+        'transaction_items': transaction_items,
     }
     
     return render(request, 'success.html', context)
@@ -263,10 +259,15 @@ def order_detail(request, transaction_id):
 @login_required
 @transaction.atomic
 def cancel_order(request, transaction_id):
-    """Allow users to cancel their own pending orders."""
+    """Allow users to cancel their pending orders. Admins can cancel any order."""
     # Untuk user biasa, cek pesanan miliknya sendiri
     if not request.user.is_staff:
         txn = get_object_or_404(Transaction, transaction_id=transaction_id, user=request.user)
+        
+        # Regular users can only cancel pending orders
+        if txn.status != 'pending':
+            messages.warning(request, "You can only cancel orders that are still pending payment.")
+            return redirect('transaction:order_detail', transaction_id=transaction_id)
     else:
         # Admin bisa membatalkan pesanan siapa saja
         txn = get_object_or_404(Transaction, transaction_id=transaction_id)
@@ -278,27 +279,33 @@ def cancel_order(request, transaction_id):
             return redirect('admindashboard:admin_transaction_detail', transaction_id=transaction_id)
         return redirect('transaction:order_detail', transaction_id=transaction_id)
     
-    # Only allow cancellation of pending orders
-    if txn.status != 'pending':
-        messages.warning(request, "Only pending orders can be cancelled.")
-        if request.user.is_staff:
-            return redirect('admindashboard:admin_transaction_detail', transaction_id=transaction_id)
-        return redirect('transaction:order_detail', transaction_id=transaction_id)
+    # Record old status (for consistency with admin cancellation)
+    old_payment_status = txn.status
+    old_shipping_status = txn.shipping_status
     
     # Restore stock for each item
     for item in txn.items.all():
-        product_size = ProductSize.objects.select_for_update().get(
-            product=item.product,
-            size=item.size
-        )
-        product_size.stock += item.quantity
-        product_size.save()
+        try:
+            product_size = ProductSize.objects.select_for_update().get(
+                product=item.product,
+                size=item.size
+            )
+            # Increase stock
+            product_size.stock += item.quantity
+            product_size.save()
+        except ProductSize.DoesNotExist:
+            # Skip if product size no longer exists
+            continue
     
     txn.status = 'cancelled'
     txn.shipping_status = 'cancelled'
     txn.save()
     
-    messages.success(request, "The order has been cancelled and stock has been restored.")
+    # Add special warning for paid orders (admin only)
+    if old_payment_status in ['paid', 'processing'] and request.user.is_staff:
+        messages.warning(request, "This paid order has been cancelled. The customer may need to be contacted regarding refund.")
+    else:
+        messages.success(request, "The order has been cancelled and stock has been restored.")
     
     # Redirect ke tempat yang sesuai berdasarkan jenis pengguna
     if request.user.is_staff:

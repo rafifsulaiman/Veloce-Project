@@ -478,14 +478,7 @@ def admin_cancel_transaction(request, transaction_id):
                 'message': 'This transaction has already been cancelled'
             })
         
-        # Check if transaction has been paid, can't cancel paid orders
-        if transaction_obj.status == 'paid' or transaction_obj.status == 'processing':
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Cannot cancel a transaction that has already been paid or is being processed'
-            })
-        
-        # Record old status for audit
+        # Record old status for audit - we'll allow cancellation regardless of status now
         old_payment_status = transaction_obj.status
         old_shipping_status = transaction_obj.shipping_status
         
@@ -517,12 +510,17 @@ def admin_cancel_transaction(request, transaction_id):
             transaction_obj.shipping_status = 'cancelled'
             transaction_obj.save()
         
+        # Add extra warning detail to the log if this was a paid transaction
+        additional_details = ""
+        if old_payment_status in ['paid', 'processing']:
+            additional_details = " IMPORTANT: This was a paid transaction that was cancelled by admin."
+        
         # Log the cancellation
         log_admin_action(
             request, 
             action='cancel',
             transaction=transaction_obj,
-            details=f'Cancelled transaction. Previous payment status: {old_payment_status}, Previous shipping status: {old_shipping_status}. Stock has been restored.'
+            details=f'Cancelled transaction. Previous payment status: {old_payment_status}, Previous shipping status: {old_shipping_status}. Stock has been restored.{additional_details}'
         )
         
         return JsonResponse({
@@ -587,7 +585,7 @@ def admin_audit_logs(request):
     logs = logs.order_by('-timestamp')
     
     # Pagination
-    paginator = Paginator(logs, 50)  # Show 50 logs per page
+    paginator = Paginator(logs, 50)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
@@ -601,11 +599,12 @@ def admin_audit_logs(request):
         'filter_end_date': end_date,
         'filter_admin': admin_filter,
         'admin_users': admin_users,
-        'action_choices': AuditLog.ACTION_CHOICES,
+        # Only transaction-related actions
+        'action_choices': [choice for choice in AuditLog.ACTION_CHOICES if choice[0] in ['view', 'status_change', 'cancel', 'unauthorized', 'suspicious']],
         'today_date': datetime.now().date(),
     }
     
-    return render(request, 'audit_logs.html', context)
+    return render(request, 'transaction_audit_logs.html', context)
 
 @staff_member_required
 def admin_product_audit_logs(request):
