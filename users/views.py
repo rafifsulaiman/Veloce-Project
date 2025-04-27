@@ -142,21 +142,6 @@ def edit_profile(request):
     user = request.user
     if request.method == 'POST':
         # Update user data
-<<<<<<< HEAD
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone_number = request.POST.get('phone_number')
-        gender = request.POST.get('gender')
-        profile_pic_url = request.POST.get('profile_pic_url')
-        
-        # Only update if values provided
-        if first_name:
-            user.first_name = first_name
-        if last_name:
-            user.last_name = last_name
-        if phone_number:
-            user.phone_number = phone_number
-=======
         raw_first = strip_tags(request.POST.get('first_name', '')).strip()
         raw_last  = strip_tags(request.POST.get('last_name', '')).strip()
         raw_phone = strip_tags(request.POST.get('phone_number', '')).strip()
@@ -190,7 +175,6 @@ def edit_profile(request):
             user.last_name = raw_last
         if raw_phone:
             user.phone_number = raw_phone
->>>>>>> 7524e637f50f082b4203067c457b433e60ed84fb
         if gender:
             user.gender = gender
         if raw_url:

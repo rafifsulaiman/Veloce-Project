@@ -72,6 +72,10 @@ class CustomUser(AbstractUser):
     def is_regular_user(self):
         return not self.is_admin and not self.is_superuser
 
+    def get_addresses(self):
+        """Return all addresses belonging to this user."""
+        return self.addresses.all()
+
 class Address(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='addresses')
     name = models.CharField(max_length=100)
@@ -102,6 +106,21 @@ class Address(models.Model):
             self.city,
             self.province,
             f"Kode Pos: {self.postal_code}"
+        ])
+        if self.additional_info:
+            parts.append(self.additional_info)
+        return ", ".join(parts)
+    
+    def get_full_address_en(self):
+        parts = [self.street_address]
+        if self.rt_rw:
+            parts.append(f"RT/RW: {self.rt_rw}")
+        parts.extend([
+            f"Village: {self.village}",
+            f"District: {self.district}",
+            f"City: {self.city}",
+            f"Province: {self.province}",
+            f"Postal Code: {self.postal_code}"
         ])
         if self.additional_info:
             parts.append(self.additional_info)
