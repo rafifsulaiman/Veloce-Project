@@ -1,30 +1,29 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.exceptions import ImmediateHttpResponse
+from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
+        # If already logged in, do nothing
         if request.user.is_authenticated:
             return
 
-        # Debug: print data dari sociallogin
-        email_address = sociallogin.account.extra_data.get('email')
-        if not email_address:
+        # Pull the Google-verified email
+        email = sociallogin.account.extra_data.get('email')
+        if not email:
+            # fallback—let allauth continue (will likely fail later)
             return
 
-        # Normalisasi email misalnya dengan mengkonversi ke lowercase
-        email_address = email_address.lower()
+        email = email.lower()
+        # If we don’t have a matching user, redirect to signup
+        if not User.objects.filter(email__iexact=email).exists():
+            raise ImmediateHttpResponse(redirect('users:register'))
 
-        try:
-            user = User.objects.get(email__iexact=email_address)
-        except User.DoesNotExist:
-            # Tidak ada user dengan email ini, lanjutkan ke signup
-            return
-
-        # Jika sudah terhubung, tidak perlu mengubah
-        if sociallogin.is_existing:
-            return
-
-        # Lakukan koneksi akun sosial dengan akun yang sudah ada
-        sociallogin.connect(request, user)
+        # Otherwise, connect the sociallogin to that existing user
+        # (and allauth will log them in)
+        if not sociallogin.is_existing:
+            user = User.objects.get(email__iexact=email)
+            sociallogin.connect(request, user)

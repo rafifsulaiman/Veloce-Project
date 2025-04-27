@@ -9,11 +9,13 @@ from django.urls import reverse
 import uuid
 import datetime
 from decimal import Decimal
+from django.contrib.admin.views.decorators import staff_member_required
 
 from cart.models import CartItem
 from products.models import Product, ProductSize
 from .models import Transaction, OrderItem, AuditLog
 from .forms import CheckoutForm
+from users.models import Address
 
 # Nilai ongkir fixed
 FIXED_DELIVERY_PRICE = 25000
@@ -36,18 +38,17 @@ def checkout_view(request):
     
     # Initialize checkout form
     if request.method == 'POST':
-        form = CheckoutForm(request.POST)
+        form = CheckoutForm(request.POST, user=request.user)
         if form.is_valid():
+            address_obj = form.cleaned_data['address']
             # Store form data in session for confirmation step
             request.session['checkout_data'] = {
-                'address': form.cleaned_data['address'],
-                'city': form.cleaned_data['city'],
-                'postal_code': form.cleaned_data['postal_code'],
+                'address_id': address_obj.id,
                 'payment_method': form.cleaned_data['payment_method'],
             }
             return redirect('transaction:checkout_confirm')
     else:
-        form = CheckoutForm()
+        form = CheckoutForm(user=request.user)
     
     # Calculate total
     cart_total = sum(item.subtotal for item in cart_items)
@@ -76,6 +77,15 @@ def checkout_confirm(request):
         messages.error(request, "Please complete the checkout form.")
         return redirect('transaction:checkout')
     
+    # Get the selected address object
+    address_obj = None
+    if 'address_id' in checkout_data:
+        try:
+            address_obj = Address.objects.get(id=checkout_data['address_id'], user=request.user)
+        except Address.DoesNotExist:
+            messages.error(request, "Selected address not found.")
+            return redirect('transaction:checkout')
+    
     # Get cart items
     cart_items = CartItem.objects.filter(user=request.user)
     
@@ -95,34 +105,34 @@ def checkout_confirm(request):
         # Process the order
         try:
             with transaction.atomic():
-                # Check stock availability one last time
+                # Check stock availability one last time and decrease stock
                 for cart_item in cart_items:
                     product_size = ProductSize.objects.select_for_update().get(
                         product=cart_item.product,
                         size=cart_item.size
                     )
-                    
                     if product_size.stock < cart_item.quantity:
                         messages.error(
                             request, 
                             f"Sorry, only {product_size.stock} units of {cart_item.product.name} in size {cart_item.size} are available."
                         )
                         return redirect('cart:cart')
-                
+                    # Decrease stock
+                    product_size.stock -= cart_item.quantity
+                    product_size.save()
                 # Create transaction with fields based on ER diagram
                 transaction_id = f"TRX-{uuid.uuid4().hex[:12].upper()}"
                 new_transaction = Transaction.objects.create(
                     transaction_id=transaction_id,
                     user=request.user,
-                    status='pending',  # Menunggu pembayaran
+                    status='pending',
                     transaction_amount=transaction_amount,
                     delivery_price=delivery_price,
-                    shipping_address=checkout_data['address'],
-                    shipping_city=checkout_data['city'],
-                    shipping_postal_code=checkout_data['postal_code'],
+                    shipping_address=address_obj.get_full_address_en() if address_obj else '',
+                    shipping_city=address_obj.city if address_obj else '',
+                    shipping_postal_code=address_obj.postal_code if address_obj else '',
                     payment_method='velocepay',
                 )
-                
                 # Create order items
                 for cart_item in cart_items:
                     OrderItem.objects.create(
@@ -133,24 +143,20 @@ def checkout_confirm(request):
                         quantity=cart_item.quantity,
                         size=cart_item.size,
                     )
-                
                 # Clear the cart
                 cart_items.delete()
-                
                 # Clear checkout data from session
                 if 'checkout_data' in request.session:
                     del request.session['checkout_data']
-                
                 # Generate mock VelocePay payment URL
                 payment_url = generate_velocepay_url(new_transaction)
                 new_transaction.payment_url = payment_url
                 new_transaction.save()
-                
                 return redirect('transaction:success', transaction_id=transaction_id)
-                
         except Exception as e:
             messages.error(request, f"Error processing your order: {str(e)}")
             return redirect('transaction:checkout')
+    # TODO: Restore stock if order is cancelled or expires
     
     context = {
         'cart_items': cart_items,
@@ -158,6 +164,7 @@ def checkout_confirm(request):
         'delivery_price': delivery_price,
         'transaction_amount': transaction_amount,
         'checkout_data': checkout_data,
+        'address_obj': address_obj,
     }
     
     return render(request, 'checkout_confirm.html', context)
@@ -252,3 +259,25 @@ def order_detail(request, transaction_id):
     }
     
     return render(request, 'order_detail.html', context)
+
+@staff_member_required
+@transaction.atomic
+def cancel_order(request, transaction_id):
+    """Admin cancels an order and restores stock."""
+    txn = get_object_or_404(Transaction, transaction_id=transaction_id)
+    if txn.status == 'cancelled':
+        messages.warning(request, "Order is already cancelled.")
+        return redirect('transaction:order_detail', transaction_id=transaction_id)
+    # Restore stock for each item
+    for item in txn.items.all():
+        product_size = ProductSize.objects.select_for_update().get(
+            product=item.product,
+            size=item.size
+        )
+        product_size.stock += item.quantity
+        product_size.save()
+    txn.status = 'cancelled'
+    txn.shipping_status = 'cancelled'
+    txn.save()
+    messages.success(request, "Order cancelled and stock restored.")
+    return redirect('transaction:order_detail', transaction_id=transaction_id)

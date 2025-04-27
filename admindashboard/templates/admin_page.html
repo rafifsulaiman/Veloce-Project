@@ -101,7 +101,7 @@
     @keyframes fadeOut {
         from { opacity: 1; transform: translateY(0); }
         to { opacity: 0; transform: translateY(20px); }
-    }
+        }
     
     .notification-enter {
         animation: fadeIn 0.3s ease-out forwards;
@@ -114,11 +114,11 @@
 {% endblock meta %}
 
 {% block content %}
-<!-- Notification Container -->
+    <!-- Notification Container -->
 <div id="notification-container" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
     <div id="notification-wrapper" class="flex flex-col gap-4 pointer-events-auto"></div>
 </div>
-
+    
 <div class="bg-[#f7f9ee] min-h-screen pb-6">
     <div class="container mx-auto px-4 py-6">
         <!-- Header Section -->
@@ -153,22 +153,22 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#92b53f]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                     </svg>
-                </div>
+            </div>
                 <div>
                     <p class="text-3xl font-bold text-gray-800">{{ products.paginator.count }}</p>
                     <p class="text-sm text-gray-500">Products</p>
-                </div>
+        </div>
             </div>
             <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center">
                 <div class="w-12 h-12 rounded-full bg-[#e3f2fd] flex items-center justify-center mr-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#1d7dcf]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                </div>
+            </div>
                 <div>
                     <p class="text-3xl font-bold text-gray-800">{{ total_stock }}</p>
                     <p class="text-sm text-gray-500">Total Stock</p>
-                </div>
+            </div>
             </div>
         </div>
 
@@ -191,10 +191,10 @@
                             <button type="submit" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 px-6 py-2.5 rounded-r-lg flex items-center justify-center transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
+                        </svg>
+                    </button>
+                </form>
+            </div>
 
                     <!-- Filters -->
                     <div class="flex flex-wrap gap-4 items-center">
@@ -218,7 +218,7 @@
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
+                </svg>
                                 </div>
                             </div>
 
@@ -289,12 +289,12 @@
                     </div>
                     {% endif %}
                 </div>
-            </div>
+        </div>
 
-            <!-- Product Grid -->
+        <!-- Product Grid -->
             <div class="p-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-                    {% for product in products %}
+            {% for product in products %}
                     <div class="product-item bg-white rounded-md shadow-sm overflow-hidden border border-gray-100 relative flex flex-col h-[360px]" data-product-info="{{ product.brand }} {{ product.name }} {{ product.product_id }} {{ product.price }} {{ product.gender }}">
                         {% if product.has_low_stock %}
                         <div class="absolute top-2 right-2 z-10 bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -302,17 +302,17 @@
                         </div>
                         {% endif %}
                         
-                        {% if product.main_image %}
+                    {% if product.main_image %}
                         <div class="h-48 overflow-hidden">
                             <img src="{{ product.main_image }}" class="w-full h-48 object-cover bg-gray-50" onerror="this.src='https://i.imgur.com/qCP9R4y.jpeg';">
                         </div>
-                        {% else %}
+                    {% else %}
                         <div class="w-full h-48 flex items-center justify-center bg-gray-50">
-                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        {% endif %}
+                        </svg>
+                    </div>
+                    {% endif %}
                         
                         <div class="px-3 py-2 flex-grow">
                             <h3 class="text-gray-900 font-medium text-sm truncate">{{ product.name }}</h3>
@@ -320,52 +320,52 @@
                             <div class="mt-1.5 mb-2">
                                 <span class="font-bold text-gray-900">Rp{{ product.price }}</span>
                                 <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {% if product.gender == 'men' %}bg-blue-50 text-blue-600{% elif product.gender == 'women' %}bg-pink-50 text-pink-600{% else %}bg-purple-50 text-purple-600{% endif %}">
-                                    {{ product.get_gender_display }}
-                                </span>
-                            </div>
-                        </div>
+                        {{ product.get_gender_display }}
+                    </span>
+                </div>
+                    </div>
                         
                         <div class="flex border-t border-gray-100 mt-auto">
                             <button onclick="editProduct('{{ product.product_id }}')" class="flex-1 py-2 text-sm font-medium text-center flex items-center justify-center text-gray-800 bg-[#e0f3b0] hover:bg-[#d4ef94] transition-colors">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Edit
-                            </button>
+                            </svg>
+                            Edit
+                        </button>
                             <button data-product-id="{{ product.product_id }}" class="flex-1 py-2 text-sm font-medium text-center flex items-center justify-center text-white bg-red-500 hover:bg-red-600 transition-colors">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="col-span-full py-8 text-center text-gray-500">
-                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                        </svg>
-                        No products found. <a href="{% url 'admindashboard:add_product' %}" class="text-green-500 hover:underline">Add your first product</a>.
-                    </div>
-                    {% endfor %}
+                            </svg>
+                            Delete
+                        </button>
                 </div>
             </div>
-            
-            <!-- Pagination -->
-            {% if products.paginator.num_pages > 1 %}
+            {% empty %}
+            <div class="col-span-full py-8 text-center text-gray-500">
+                <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                No products found. <a href="{% url 'admindashboard:add_product' %}" class="text-green-500 hover:underline">Add your first product</a>.
+            </div>
+            {% endfor %}
+                </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if products.paginator.num_pages > 1 %}
             <div class="border-t border-gray-200 p-4">
                 <div class="flex items-center justify-between">
                     <div class="text-sm text-gray-500">
                         Showing {{ products.start_index }} to {{ products.end_index }} of {{ products.paginator.count }} products
                     </div>
                     <div class="flex items-center space-x-2">
-                        {% if products.has_previous %}
+                {% if products.has_previous %}
                         <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-                            </svg>
-                        </a>
+                    </svg>
+                </a>
                         <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                            class="inline-flex items-center px-4 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
                             Previous
@@ -379,25 +379,25 @@
                         <span class="inline-flex items-center px-4 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
                             Previous
                         </span>
-                        {% endif %}
-                        
+                {% endif %}
+                
                         <div class="hidden md:flex items-center space-x-1">
-                            {% for i in products.paginator.page_range %}
-                                {% if products.number == i %}
+                {% for i in products.paginator.page_range %}
+                    {% if products.number == i %}
                                 <span class="inline-flex items-center px-3 py-1.5 bg-[#e0f3b0] text-gray-800 font-medium rounded-md">
-                                    {{ i }}
-                                </span>
+                        {{ i }}
+                    </span>
                                 {% elif i == 1 or i == products.paginator.num_pages or i >= products.number|add:"-1" and i <= products.number|add:"1" %}
                                 <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
-                                    {{ i }}
-                                </a>
+                        {{ i }}
+                    </a>
                                 {% elif i == products.number|add:"-2" or i == products.number|add:"2" %}
                                 <span class="inline-flex items-center px-2 py-1.5 text-gray-500">
                                     ...
                                 </span>
-                                {% endif %}
-                            {% endfor %}
+                    {% endif %}
+                {% endfor %}
                         </div>
                         
                         <div class="md:hidden flex items-center">
@@ -405,8 +405,8 @@
                                 {{ products.number }} of {{ products.paginator.num_pages }}
                             </span>
                         </div>
-                        
-                        {% if products.has_next %}
+                
+                {% if products.has_next %}
                         <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                            class="inline-flex items-center px-4 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
                             Next
@@ -415,8 +415,8 @@
                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
-                            </svg>
-                        </a>
+                    </svg>
+                </a>
                         {% else %}
                         <span class="inline-flex items-center px-4 py-1.5 border border-gray-200 text-gray-400 bg-gray-50 rounded-md cursor-not-allowed">
                             Next
@@ -426,11 +426,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
                             </svg>
                         </span>
-                        {% endif %}
+                {% endif %}
                     </div>
                 </div>
-            </div>
-            {% endif %}
+        </div>
+        {% endif %}
         </div>
     </div>
 </div>
@@ -586,10 +586,10 @@
 // Notification Functions
 function showNotification(message, type, needsConfirmation = false, onConfirm = null) {
     const wrapper = document.getElementById('notification-wrapper');
-    const container = document.getElementById('notification-container');
-    
-    // Create notification element
-    const notification = document.createElement('div');
+        const container = document.getElementById('notification-container');
+        
+        // Create notification element
+        const notification = document.createElement('div');
     notification.className = `notification-enter max-w-sm w-full p-4 rounded-lg shadow-xl flex flex-col gap-3 ${
         type === 'success' ? 'bg-white border-l-4 border-green-500' :
         type === 'error' ? 'bg-white border-l-4 border-red-500' :
@@ -610,7 +610,7 @@ function showNotification(message, type, needsConfirmation = false, onConfirm = 
     icon.innerHTML = type === 'success' ? `
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
+                </svg>
     ` : type === 'error' ? `
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -619,8 +619,8 @@ function showNotification(message, type, needsConfirmation = false, onConfirm = 
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
         </svg>
-    `;
-    
+        `;
+        
     // Create message text
     const text = document.createElement('p');
     text.className = 'text-gray-800 font-medium flex-1';
@@ -630,7 +630,7 @@ function showNotification(message, type, needsConfirmation = false, onConfirm = 
     messageContainer.appendChild(icon);
     messageContainer.appendChild(text);
     notification.appendChild(messageContainer);
-    
+        
     // Add button if confirmation is needed
     if (needsConfirmation) {
         const btnContainer = document.createElement('div');
@@ -646,7 +646,7 @@ function showNotification(message, type, needsConfirmation = false, onConfirm = 
         
         okayBtn.onclick = () => {
             notification.classList.replace('notification-enter', 'notification-exit');
-            setTimeout(() => {
+        setTimeout(() => {
                 notification.remove();
                 if (wrapper.children.length === 0) {
                     container.classList.add('pointer-events-none');
@@ -659,10 +659,10 @@ function showNotification(message, type, needsConfirmation = false, onConfirm = 
         notification.appendChild(btnContainer);
     } else {
         // Auto remove after 3 seconds if no confirmation needed
-        setTimeout(() => {
+            setTimeout(() => {
             notification.classList.replace('notification-enter', 'notification-exit');
             setTimeout(() => {
-                notification.remove();
+                    notification.remove();
                 if (wrapper.children.length === 0) {
                     container.classList.add('pointer-events-none');
                 }
@@ -748,56 +748,56 @@ let productIdToDelete = null;
 
 function getCSRFToken() {
     return document.querySelector('[name=csrfmiddlewaretoken]').value;
-}
+    }
 
-function editProduct(productId) {
+    function editProduct(productId) {
     console.log("🔹 Editing product:", productId);  
-    fetch(`/products/get-product/${productId}/`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('editProductId').value = productId;
+        fetch(`/products/get-product/${productId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('editProductId').value = productId;
             document.getElementById('editProductId').readOnly = true;
-            document.getElementById('editName').value = data.name;
-            document.getElementById('editBrand').value = data.brand;
-            document.getElementById('editPrice').value = data.price;
-            document.getElementById('editGender').value = data.gender;
-            
-            const sizeTableBody = document.getElementById('sizesTableBody');
-            sizeTableBody.innerHTML = '';
-            
-            if (Array.isArray(data.sizes)) {
-                data.sizes.forEach(sizeData => {
-                    addSizeRow(sizeData.size, sizeData.stock);
-                });
-            }
-            
-            document.getElementById('editImageUrl').value = data.image_url;
-            updateImagePreview(data.image_url);
-            openEditModal();
-        })
-        .catch(error => {
-            console.error('Error fetching product data:', error);
+                document.getElementById('editName').value = data.name;
+                document.getElementById('editBrand').value = data.brand;
+                document.getElementById('editPrice').value = data.price;
+                document.getElementById('editGender').value = data.gender;
+                
+                const sizeTableBody = document.getElementById('sizesTableBody');
+                sizeTableBody.innerHTML = '';
+                
+                if (Array.isArray(data.sizes)) {
+                    data.sizes.forEach(sizeData => {
+                        addSizeRow(sizeData.size, sizeData.stock);
+                    });
+                }
+                
+                document.getElementById('editImageUrl').value = data.image_url;
+                updateImagePreview(data.image_url);
+                openEditModal();
+            })
+            .catch(error => {
+                console.error('Error fetching product data:', error);
             showErrorMessage('Error fetching product data');
-        });
-}
+            });
+    }
 
-function updateImagePreview(url) {
-    const previewContainer = document.getElementById('imagePreview');
+    function updateImagePreview(url) {
+        const previewContainer = document.getElementById('imagePreview');
     const errorDiv = document.getElementById('imageUrlError');
-    previewContainer.innerHTML = '';
-    
+        previewContainer.innerHTML = '';
+        
     if (url) {
         const imageUrlLower = url.toLowerCase();
         if (!imageUrlLower.endsWith('.jpg') && !imageUrlLower.endsWith('.jpeg') && !imageUrlLower.endsWith('.png')) {
             errorDiv.textContent = 'Image URL must end with .jpg, .jpeg, or .png';
             errorDiv.classList.remove('hidden');
             document.getElementById('editImageUrl').classList.add('border-red-500');
-            return;
+                return;
         }
         
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'h-32 object-cover rounded';
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'h-32 object-cover rounded';
         img.onerror = function() {
             this.src = 'https://i.imgur.com/qCP9R4y.jpeg';
             errorDiv.textContent = 'Invalid image URL';
@@ -808,21 +808,21 @@ function updateImagePreview(url) {
             errorDiv.classList.add('hidden');
             document.getElementById('editImageUrl').classList.remove('border-red-500');
         };
-        previewContainer.appendChild(img);
+            previewContainer.appendChild(img);
+        }
     }
-}
 
-function addSizeRow(size = '', stock = 0) {
-    const tbody = document.getElementById('sizesTableBody');
-    const rowCount = tbody.rows.length;
-    const row = tbody.insertRow();
-    
-    // Size input
-    const sizeCell = row.insertCell(0);
-    const sizeInput = document.createElement('input');
-    sizeInput.type = 'number';
-    sizeInput.name = `sizes[${rowCount}][size]`;
-    sizeInput.value = size;
+    function addSizeRow(size = '', stock = 0) {
+        const tbody = document.getElementById('sizesTableBody');
+        const rowCount = tbody.rows.length;
+        const row = tbody.insertRow();
+        
+        // Size input
+        const sizeCell = row.insertCell(0);
+        const sizeInput = document.createElement('input');
+        sizeInput.type = 'number';
+        sizeInput.name = `sizes[${rowCount}][size]`;
+        sizeInput.value = size;
     sizeInput.min = 16;
     sizeInput.max = 60;
     sizeInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md';
@@ -830,41 +830,41 @@ function addSizeRow(size = '', stock = 0) {
         if (this.value < 16) this.value = 16;
         if (this.value > 60) this.value = 60;
     });
-    sizeCell.appendChild(sizeInput);
-    
-    // Stock input
-    const stockCell = row.insertCell(1);
-    const stockInput = document.createElement('input');
-    stockInput.type = 'number';
-    stockInput.name = `sizes[${rowCount}][stock]`;
-    stockInput.value = stock;
+        sizeCell.appendChild(sizeInput);
+        
+        // Stock input
+        const stockCell = row.insertCell(1);
+        const stockInput = document.createElement('input');
+        stockInput.type = 'number';
+        stockInput.name = `sizes[${rowCount}][stock]`;
+        stockInput.value = stock;
     stockInput.min = 0;
     stockInput.className = 'w-full px-2 py-1 border border-gray-300 rounded-md';
     stockInput.addEventListener('input', function() {
         if (this.value < 0) this.value = 0;
     });
-    stockCell.appendChild(stockInput);
-    
-    // Delete button
-    const actionCell = row.insertCell(2);
-    const deleteBtn = document.createElement('button');
-    deleteBtn.type = 'button';
+        stockCell.appendChild(stockInput);
+        
+        // Delete button
+        const actionCell = row.insertCell(2);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
     deleteBtn.className = 'bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-sm';
-    deleteBtn.textContent = 'Remove';
-    deleteBtn.onclick = function() { row.remove(); };
-    actionCell.appendChild(deleteBtn);
-}
+        deleteBtn.textContent = 'Remove';
+        deleteBtn.onclick = function() { row.remove(); };
+        actionCell.appendChild(deleteBtn);
+    }
 
-function openEditModal() {
-    document.getElementById('editModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-    document.body.style.overflow = '';
-}
-
+    function openEditModal() {
+        document.getElementById('editModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
 // Delete Product Functions
 function openDeleteModal(productId) {
     productIdToDelete = productId;
@@ -941,8 +941,8 @@ function validateProductForm() {
     if (!name) {
         showErrorMessage('Product name is required');
         return false;
-    }
-    
+        }
+        
     // Validate price
     if (isNaN(price) || price <= 0) {
         showErrorMessage('Price must be greater than 0');
@@ -1021,7 +1021,7 @@ function initializeEventListeners() {
     // Re-attach delete button listeners
     document.querySelectorAll('button[data-product-id]').forEach(button => {
         button.onclick = (e) => {
-            e.preventDefault();
+                e.preventDefault();
             const productId = button.getAttribute('data-product-id');
             openDeleteModal(productId);
         };
@@ -1038,28 +1038,28 @@ function initializeEventListeners() {
                     e.preventDefault();
                     editProduct(productId);
                 };
+                }
             }
-        }
-    });
+        });
 }
-
+        
 // Modified form submission handler
 document.addEventListener("DOMContentLoaded", function () {
     initializeEventListeners();
     
-    const editForm = document.getElementById('editForm');
+        const editForm = document.getElementById('editForm');
     
-    if (editForm) {
+        if (editForm) {
         editForm.addEventListener('submit', function (event) {
-            event.preventDefault();
+                event.preventDefault();
             
             if (!validateProductForm()) {
                 return;
             }
-            
-            const productId = document.getElementById('editProductId').value;
-            
-            // Collect form values
+                
+                const productId = document.getElementById('editProductId').value;
+    
+                // Collect form values
             const formData = {
                 name: document.getElementById('editName').value.trim(),
                 brand: document.getElementById('editBrand').value,
@@ -1068,46 +1068,46 @@ document.addEventListener("DOMContentLoaded", function () {
                 image_url: document.getElementById('editImageUrl').value.trim(),
                 sizes: []
             };
-            
-            // Collect size and stock data
-            const sizeRows = document.querySelectorAll('#sizesTableBody tr');
-            sizeRows.forEach(row => {
-                const sizeInput = row.querySelector('input[name^="sizes"][name$="[size]"]');
-                const stockInput = row.querySelector('input[name^="sizes"][name$="[stock]"]');
                 
-                if (sizeInput && stockInput && sizeInput.value) {
+                // Collect size and stock data
+                const sizeRows = document.querySelectorAll('#sizesTableBody tr');
+                sizeRows.forEach(row => {
+                    const sizeInput = row.querySelector('input[name^="sizes"][name$="[size]"]');
+                    const stockInput = row.querySelector('input[name^="sizes"][name$="[stock]"]');
+                    
+                    if (sizeInput && stockInput && sizeInput.value) {
                     formData.sizes.push({
-                        size: parseInt(sizeInput.value),
-                        stock: parseInt(stockInput.value || 0)
-                    });
-                }
-            });
-
-            // Send data to server
-            fetch(`/admindashboard/edit-product/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
+                            size: parseInt(sizeInput.value),
+                            stock: parseInt(stockInput.value || 0)
+                        });
+                    }
+                });
+    
+                // Send data to server
+                fetch(`/admindashboard/edit-product/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
                     closeEditModal();
                     showSuccessMessage('Product updated successfully!', true);
-                } else {
+                    } else {
                     showErrorMessage('Failed to update product: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                console.error("Error updating product:", error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error updating product:", error);
                 showErrorMessage('Error updating product');
+                });
             });
-        });
-    }
-
+        }
+        
     // Set up delete confirmation
     document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
         if (productIdToDelete) {
@@ -1120,7 +1120,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('deleteModal').addEventListener('click', function(e) {
         if (e.target === this) {
             closeDeleteModal();
-        }
+                            }
     });
 });
 </script>

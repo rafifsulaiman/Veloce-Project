@@ -6,6 +6,7 @@ from .views import (
     order_history,
     order_detail,
     process_payment,
+    cancel_order,
 )
 
 app_name = 'transaction'
@@ -18,4 +19,6 @@ urlpatterns = [
     path('orders/', order_history, name='order_history'),
     path('orders/<str:transaction_id>/', order_detail, name='order_detail'),
     path('payment/<str:transaction_id>/', process_payment, name='process_payment'),
+    # Admin cancel order
+    path('orders/<str:transaction_id>/cancel/', cancel_order, name='cancel_order'),
 ]

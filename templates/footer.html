@@ -2,7 +2,8 @@
 <!-- Footer -->
 <footer class="bg-black text-white py-8">
     <div class="max-w-6xl mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Desktop Footer -->
+        <div class="hidden md:grid md:grid-cols-3 gap-8">
             <!-- Logo and about -->
             <div class="text-center md:text-left">
                 <div class="flex justify-center md:justify-start mb-4">
@@ -25,7 +26,8 @@
                     <li><a href="{% url 'transaction:order_history' %}" class="text-gray-300 hover:text-white transition">My Orders</a></li>
                     {% endif %}
                     {% if user.is_authenticated and user.is_staff %}
-                    <li><a href="{% url 'admindashboard:admin_page' %}" class="text-gray-300 hover:text-white transition">Admin Dashboard</a></li>
+                    <li><a href="{% url 'admindashboard:admin_page' %}" class="text-gray-300 hover:text-white transition">Manage Products</a></li>
+                    <li><a href="{% url 'admindashboard:admin_transaction_list' %}" class="text-gray-300 hover:text-white transition">Manage Transactions</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -50,7 +52,50 @@
                 </div>
             </div>
         </div>
-        <div class="mt-8 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
+
+        <!-- Mobile Footer -->
+        <div class="md:hidden">
+            <!-- Logo -->
+            <div class="flex justify-center mb-6">
+                <img src="https://ik.imagekit.io/veloce37/veloce_putih.png?updatedAt=1745736635627" alt="Veloce Logo White" class="h-12">
+            </div>
+
+            <!-- Quick Links - Simplified -->
+            <div class="flex justify-center mb-6">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <a href="{% url 'home:index' %}" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="{% url 'products:catalog' %}" class="text-gray-300 hover:text-white transition">Catalog</a>
+                    {% if user.is_authenticated and not user.is_staff %}
+                    <a href="{% url 'cart:cart' %}" class="text-gray-300 hover:text-white transition">Cart</a>
+                    <a href="{% url 'transaction:order_history' %}" class="text-gray-300 hover:text-white transition">Orders</a>
+                    {% endif %}
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admindashboard:admin_page' %}" class="text-gray-300 hover:text-white transition">Products</a>
+                    <a href="{% url 'admindashboard:admin_transaction_list' %}" class="text-gray-300 hover:text-white transition">Transactions</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contact - Simplified -->
+            <div class="text-center mb-6">
+                <div class="flex justify-center space-x-4 mb-4">
+                    <a href="mailto:info@veloce.com" class="text-gray-300 hover:text-white transition">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="tel:+6281234567890" class="text-gray-300 hover:text-white transition">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                </div>
+                <div class="flex justify-center space-x-6">
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright - Both Mobile and Desktop -->
+        <div class="mt-6 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
             <p>© 2025 Veloce. All rights reserved.</p>
         </div>
     </div>

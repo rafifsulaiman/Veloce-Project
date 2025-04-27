@@ -19,11 +19,31 @@ def cart_view(request):
     
     # Get all cart items for the current user
     cart_items = CartItem.objects.filter(user=request.user)
-    
+
+    processable_items = []
+    unprocessed_items = []
+    for item in cart_items:
+        try:
+            product_size = ProductSize.objects.get(product=item.product, size=item.size)
+            if product_size.stock >= item.quantity and product_size.stock > 0:
+                processable_items.append(item)
+            else:
+                unprocessed_items.append({
+                    'item': item,
+                    'stock': product_size.stock
+                })
+        except ProductSize.DoesNotExist:
+            # If the size no longer exists, treat as unprocessed
+            unprocessed_items.append({
+                'item': item,
+                'stock': 0
+            })
+
     context = {
         "user": request.user,
-        "cart_items": cart_items,
-        "total": sum(item.subtotal for item in cart_items)
+        "cart_items": processable_items,
+        "unprocessed_items": unprocessed_items,
+        "total": sum(item.subtotal for item in processable_items)
     }
     return render(request, 'cart/cart.html', context)
 
