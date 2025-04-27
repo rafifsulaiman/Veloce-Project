@@ -240,6 +240,42 @@
     </div>
 </div>
 <script>
+    function sanitizeTextInput(input) {
+        input.value = input.value.replace(/[^\w\s\-]/g, '');
+    }
+
+    // Hilangkan tanda kutip dan titik koma di URL
+    function sanitizeURLInput(input) {
+        input.value = input.value.replace(/['";]/g, '');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput       = document.getElementById('id_name');
+        const productIdInput  = document.getElementById('id_product_id');
+        const imageUrlInput   = document.getElementById('id_image_url');
+
+        if (nameInput) {
+            nameInput.addEventListener('input', function() {
+                sanitizeTextInput(this);
+            });
+        }
+        if (productIdInput) {
+            productIdInput.addEventListener('input', function() {
+                sanitizeTextInput(this);
+            });
+        }
+        if (imageUrlInput) {
+            imageUrlInput.addEventListener('input', function() {
+                sanitizeURLInput(this);
+            });
+        }
+
+        // Integrasi dengan validasi product ID yang sudah ada
+        productIdInput && productIdInput.addEventListener('input', function() {
+            validateProductId(this);
+        });
+    });
+    
     // Notification system
     function showNotification(message, type = 'success') {
         const container = document.getElementById('notificationContainer');

@@ -58,6 +58,16 @@ class ProductForm(forms.ModelForm):
         if "'" in url_field or '"' in url_field or ";" in url_field:
             raise ValidationError("Invalid characters in image URL.")
         return url_field
+    
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        validate_safe_text(name)          # will raise ValidationError on bad chars
+        return name
+
+    def clean_product_id(self):
+        pid = self.cleaned_data['product_id']
+        validate_safe_text(pid)
+        return pid
 
     def save(self, commit=True):
         product = super().save(commit=False)
