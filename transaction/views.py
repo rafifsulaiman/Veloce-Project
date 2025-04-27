@@ -28,12 +28,28 @@ def checkout_view(request):
         messages.error(request, "Admin users cannot checkout.")
         return redirect('products:catalog')
     
-    # Get cart items
-    cart_items = CartItem.objects.filter(user=request.user)
+    # Get all cart items for the current user
+    all_cart_items = CartItem.objects.filter(user=request.user)
     
     # Redirect if cart is empty
-    if not cart_items.exists():
+    if not all_cart_items.exists():
         messages.error(request, "Your cart is empty.")
+        return redirect('cart:cart')
+    
+    # Filter to only include items with sufficient stock
+    valid_cart_items = []
+    for item in all_cart_items:
+        try:
+            product_size = ProductSize.objects.get(product=item.product, size=item.size)
+            if product_size.stock >= item.quantity and product_size.stock > 0:
+                valid_cart_items.append(item)
+        except ProductSize.DoesNotExist:
+            # Skip items with non-existent sizes
+            continue
+    
+    # If no valid items, redirect back to cart
+    if not valid_cart_items:
+        messages.error(request, "There are no valid items in your cart. Please update quantities or remove out-of-stock items.")
         return redirect('cart:cart')
     
     # Initialize checkout form
@@ -50,11 +66,11 @@ def checkout_view(request):
     else:
         form = CheckoutForm(user=request.user)
     
-    # Calculate total
-    cart_total = sum(item.subtotal for item in cart_items)
+    # Calculate total only for valid items
+    cart_total = sum(item.subtotal for item in valid_cart_items)
     
     context = {
-        'cart_items': cart_items,
+        'cart_items': valid_cart_items,
         'cart_total': cart_total,
         'form': form,
         'delivery_price': FIXED_DELIVERY_PRICE,
@@ -86,16 +102,32 @@ def checkout_confirm(request):
             messages.error(request, "Selected address not found.")
             return redirect('transaction:checkout')
     
-    # Get cart items
-    cart_items = CartItem.objects.filter(user=request.user)
+    # Get all cart items for the current user
+    all_cart_items = CartItem.objects.filter(user=request.user)
     
     # Redirect if cart is empty
-    if not cart_items.exists():
+    if not all_cart_items.exists():
         messages.error(request, "Your cart is empty.")
         return redirect('cart:cart')
     
-    # Calculate total for products
-    product_total = sum(item.subtotal for item in cart_items)
+    # Filter to only include items with sufficient stock
+    valid_cart_items = []
+    for item in all_cart_items:
+        try:
+            product_size = ProductSize.objects.get(product=item.product, size=item.size)
+            if product_size.stock >= item.quantity and product_size.stock > 0:
+                valid_cart_items.append(item)
+        except ProductSize.DoesNotExist:
+            # Skip items with non-existent sizes
+            continue
+    
+    # If no valid items, redirect back to cart
+    if not valid_cart_items:
+        messages.error(request, "There are no valid items in your cart. Please update quantities or remove out-of-stock items.")
+        return redirect('cart:cart')
+    
+    # Calculate total for products (only valid items)
+    product_total = sum(item.subtotal for item in valid_cart_items)
     # Use fixed delivery price
     delivery_price = FIXED_DELIVERY_PRICE
     # Calculate final transaction amount
@@ -106,7 +138,7 @@ def checkout_confirm(request):
         try:
             with transaction.atomic():
                 # Check stock availability one last time and decrease stock
-                for cart_item in cart_items:
+                for cart_item in valid_cart_items:
                     product_size = ProductSize.objects.select_for_update().get(
                         product=cart_item.product,
                         size=cart_item.size
@@ -133,8 +165,8 @@ def checkout_confirm(request):
                     shipping_postal_code=address_obj.postal_code if address_obj else '',
                     payment_method='velocepay',
                 )
-                # Create order items
-                for cart_item in cart_items:
+                # Create order items (only for valid items)
+                for cart_item in valid_cart_items:
                     OrderItem.objects.create(
                         transaction=new_transaction,
                         product=cart_item.product,
@@ -143,8 +175,9 @@ def checkout_confirm(request):
                         quantity=cart_item.quantity,
                         size=cart_item.size,
                     )
-                # Clear the cart
-                cart_items.delete()
+                # Delete only valid items from cart (keep invalid ones for user to address)
+                for item in valid_cart_items:
+                    item.delete()
                 # Clear checkout data from session
                 if 'checkout_data' in request.session:
                     del request.session['checkout_data']
@@ -159,7 +192,7 @@ def checkout_confirm(request):
     # TODO: Restore stock if order is cancelled or expires
     
     context = {
-        'cart_items': cart_items,
+        'cart_items': valid_cart_items,
         'product_total': product_total,
         'delivery_price': delivery_price,
         'transaction_amount': transaction_amount,

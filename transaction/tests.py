@@ -251,7 +251,7 @@ class TransactionViewsTests(TestCase):
         self.client.login(username='testuser', password='password')
         response = self.client.post(reverse('transaction:checkout_confirm'))
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("Sorry, only" in m.message for m in messages))
+        self.assertTrue(any("There are no valid items in your cart" in m.message for m in messages))
         self.assertEqual(response.status_code, 302)
         # Pastikan tidak ada transaksi tercipta
         self.assertFalse(Transaction.objects.filter(user=self.user).exists())
