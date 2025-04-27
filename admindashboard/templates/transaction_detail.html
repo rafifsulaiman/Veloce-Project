@@ -24,9 +24,11 @@
                 </svg>
                 Back to List
             </a>
+            {% if transaction.status != 'cancelled' %}
             <button onclick="openCancelModal('{{ transaction.transaction_id }}')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
                 Cancel Transaction
             </button>
+            {% endif %}
         </div>
     </div>
     
@@ -47,9 +49,11 @@
                         {{ transaction.get_status_display }}
                     </span>
                 </div>
+                {% if transaction.status != 'cancelled' %}
                 <button type="button" onclick="openStatusModal('payment')" class="text-primary hover:text-primary-dark font-medium">
                     Change Status
                 </button>
+                {% endif %}
             </div>
         </div>
         
@@ -68,9 +72,11 @@
                         {{ transaction.get_shipping_status_display }}
                     </span>
                 </div>
+                {% if transaction.status != 'cancelled' %}
                 <button type="button" onclick="openStatusModal('shipping')" class="text-primary hover:text-primary-dark font-medium">
                     Change Status
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -297,7 +303,9 @@
                 <label for="payment_status" class="block text-sm font-medium text-gray-700 mb-1">New Payment Status</label>
                 <select id="payment_status" class="w-full border border-gray-300 rounded-md px-3 py-2">
                     {% for key, value in status_choices %}
+                    {% if key != 'cancelled' %}
                     <option value="{{ key }}" {% if transaction.status == key %}selected{% endif %}>{{ value }}</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -329,7 +337,9 @@
                 <label for="shipping_status" class="block text-sm font-medium text-gray-700 mb-1">New Shipping Status</label>
                 <select id="shipping_status" class="w-full border border-gray-300 rounded-md px-3 py-2">
                     {% for key, value in shipping_status_choices %}
+                    {% if key != 'cancelled' %}
                     <option value="{{ key }}" {% if transaction.shipping_status == key %}selected{% endif %}>{{ value }}</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -357,15 +367,50 @@
                     </svg>
                 </button>
             </div>
-            <div class="mb-4">
-                <p>Are you sure you want to cancel this transaction? This action cannot be undone.</p>
+            <div class="mb-6">
+                <p class="text-gray-700 mb-3">Are you sure you want to cancel this transaction? This action cannot be undone.</p>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                Cancelling this order will automatically:
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-blue-700 mt-1">
+                                <li>Change the order status to "Cancelled"</li>
+                                <li>Restore all product items back to inventory</li>
+                                <li>Make this change permanent and irreversible</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% if transaction.status == 'paid' or transaction.status == 'processing' %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                Warning: This order has already been paid or is being processed. Cancelling it may require additional customer service actions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="flex justify-end space-x-3">
                 <button type="button" onclick="closeCancelModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
                     No, Keep it
                 </button>
                 <button type="button" onclick="cancelTransaction()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                    Yes, Cancel
+                    Yes, Cancel Order
                 </button>
             </div>
         </div>
@@ -443,6 +488,11 @@
     }
     
     function cancelTransaction() {
+        // Disable button to prevent multiple clicks
+        const cancelBtn = document.querySelector('#cancelModal button.bg-red-600');
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Processing...';
+        
         fetch('{% url "admindashboard:admin_cancel_transaction" transaction.transaction_id %}', {
             method: 'POST',
             headers: {
@@ -454,16 +504,24 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                // Show success message briefly before redirecting
+                alert(data.message);
                 // Redirect to the transaction list
                 window.location.href = '{% url "admindashboard:admin_transaction_list" %}';
             } else {
                 alert('Error: ' + data.message);
+                // Re-enable button
+                cancelBtn.disabled = false;
+                cancelBtn.textContent = 'Yes, Cancel Order';
                 closeCancelModal();
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while trying to cancel the transaction.');
+            // Re-enable button
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = 'Yes, Cancel Order';
             closeCancelModal();
         });
     }

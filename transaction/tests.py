@@ -272,7 +272,8 @@ class TransactionViewsTests(TestCase):
         self.client.login(username='adminuser', password='password')
         response = self.client.get(reverse('transaction:cancel_order', args=[txn.transaction_id]))
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("already cancelled" in m.message for m in messages))
+        self.assertTrue(any("already been cancelled" in m.message for m in messages) or 
+                      any("already cancelled" in m.message for m in messages))
         self.assertEqual(response.status_code, 302)
 
     def test_cart_is_cleared_after_successful_checkout(self):

@@ -264,11 +264,25 @@ def order_detail(request, transaction_id):
 @transaction.atomic
 def cancel_order(request, transaction_id):
     """Allow users to cancel their own pending orders."""
-    txn = get_object_or_404(Transaction, transaction_id=transaction_id, user=request.user)
+    # Untuk user biasa, cek pesanan miliknya sendiri
+    if not request.user.is_staff:
+        txn = get_object_or_404(Transaction, transaction_id=transaction_id, user=request.user)
+    else:
+        # Admin bisa membatalkan pesanan siapa saja
+        txn = get_object_or_404(Transaction, transaction_id=transaction_id)
+    
+    # Cek apakah pesanan sudah dibatalkan
+    if txn.status == 'cancelled':
+        messages.warning(request, "This order has already been cancelled.")
+        if request.user.is_staff:
+            return redirect('admindashboard:admin_transaction_detail', transaction_id=transaction_id)
+        return redirect('transaction:order_detail', transaction_id=transaction_id)
     
     # Only allow cancellation of pending orders
     if txn.status != 'pending':
         messages.warning(request, "Only pending orders can be cancelled.")
+        if request.user.is_staff:
+            return redirect('admindashboard:admin_transaction_detail', transaction_id=transaction_id)
         return redirect('transaction:order_detail', transaction_id=transaction_id)
     
     # Restore stock for each item
@@ -284,5 +298,9 @@ def cancel_order(request, transaction_id):
     txn.shipping_status = 'cancelled'
     txn.save()
     
-    messages.success(request, "Your order has been cancelled and stock has been restored.")
+    messages.success(request, "The order has been cancelled and stock has been restored.")
+    
+    # Redirect ke tempat yang sesuai berdasarkan jenis pengguna
+    if request.user.is_staff:
+        return redirect('admindashboard:admin_transaction_list')
     return redirect('transaction:order_history')

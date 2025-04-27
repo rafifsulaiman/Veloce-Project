@@ -51,9 +51,9 @@
                 <a href="{{ transaction.payment_url }}" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                     Pay Now
                 </a>
-                <a href="{% url 'transaction:cancel_order' transaction.transaction_id %}" onclick="return confirm('Are you sure you want to cancel this order?')" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <button onclick="openCancelModal()" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                     Cancel Order
-                </a>
+                </button>
             </div>
         </div>
         {% endif %}
@@ -179,4 +179,43 @@
         </a>
     </div>
 </div>
+
+<!-- Cancel Order Confirmation Modal -->
+<div id="cancelOrderModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 m-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Cancel Order</h3>
+            <button type="button" onclick="closeCancelModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="mb-6">
+            <p class="text-gray-700">Are you sure you want to cancel this order? This action cannot be undone.</p>
+            <p class="text-sm text-gray-500 mt-2">If you cancel, any items will be returned to stock and your order will be permanently cancelled.</p>
+        </div>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeCancelModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">
+                No, Keep Order
+            </button>
+            <a href="{% url 'transaction:cancel_order' transaction.transaction_id %}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                Yes, Cancel Order
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Modal control functions
+    function openCancelModal() {
+        document.getElementById('cancelOrderModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+    }
+    
+    function closeCancelModal() {
+        document.getElementById('cancelOrderModal').classList.add('hidden');
+        document.body.style.overflow = ''; // Re-enable scrolling
+    }
+</script>
 {% endblock %} 

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from admindashboard.forms import ProductForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from products.models import Product
+from products.models import Product, ProductSize
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -11,6 +11,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q, F, Sum
 from transaction.models import Transaction, AuditLog, OrderItem
 from datetime import datetime, timedelta
+from django.db.models.deletion import ProtectedError
+from django.db.transaction import atomic
 
 @login_required(login_url='users:login')
 def admin_page(request):
@@ -136,7 +138,6 @@ def add_product(request):
                 
                 # Create new ProductSize objects with the correct stock values
                 for size_item in sizes_data:
-                    from products.models import ProductSize
                     ProductSize.objects.create(
                         product=product,
                         size=int(size_item['size']),
@@ -198,7 +199,6 @@ def edit_product(request, product_id):
                 product.sizes.all().delete()
                 
                 # Create new size entries
-                from products.models import ProductSize
                 for size_item in sizes_data:
                     if isinstance(size_item, dict) and 'size' in size_item:
                         ProductSize.objects.create(
@@ -471,26 +471,63 @@ def admin_cancel_transaction(request, transaction_id):
                 'message': 'You do not have permission to cancel transactions'
             }, status=403)
         
+        # Check if transaction is already cancelled
+        if transaction_obj.status == 'cancelled':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'This transaction has already been cancelled'
+            })
+        
+        # Check if transaction has been paid, can't cancel paid orders
+        if transaction_obj.status == 'paid' or transaction_obj.status == 'processing':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Cannot cancel a transaction that has already been paid or is being processed'
+            })
+        
         # Record old status for audit
         old_payment_status = transaction_obj.status
         old_shipping_status = transaction_obj.shipping_status
         
-        # Cancel the transaction
-        transaction_obj.status = 'cancelled'
-        transaction_obj.shipping_status = 'cancelled'
-        transaction_obj.save()
+        # Use database transaction to ensure data integrity
+        with atomic():
+            # Restore product stock
+            order_items = transaction_obj.items.all()
+            for item in order_items:
+                try:
+                    product_size = ProductSize.objects.select_for_update().get(
+                        product=item.product,
+                        size=item.size
+                    )
+                    # Increase stock
+                    product_size.stock += item.quantity
+                    product_size.save()
+                except ProductSize.DoesNotExist:
+                    # Log if product size no longer exists
+                    log_admin_action(
+                        request,
+                        action='cancel',
+                        transaction=transaction_obj,
+                        details=f'Failed to restore stock for product {item.product_name} size {item.size}: ProductSize not found'
+                    )
+                    continue
+            
+            # Cancel the transaction
+            transaction_obj.status = 'cancelled'
+            transaction_obj.shipping_status = 'cancelled'
+            transaction_obj.save()
         
         # Log the cancellation
         log_admin_action(
             request, 
             action='cancel',
             transaction=transaction_obj,
-            details=f'Cancelled transaction. Previous payment status: {old_payment_status}, Previous shipping status: {old_shipping_status}'
+            details=f'Cancelled transaction. Previous payment status: {old_payment_status}, Previous shipping status: {old_shipping_status}. Stock has been restored.'
         )
         
         return JsonResponse({
             'status': 'success',
-            'message': 'Transaction cancelled successfully'
+            'message': 'Transaction cancelled successfully and product stock has been restored'
         })
         
     except Transaction.DoesNotExist:
