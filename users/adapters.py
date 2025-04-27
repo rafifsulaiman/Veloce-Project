@@ -2,6 +2,7 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.exceptions import ImmediateHttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -20,6 +21,7 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         email = email.lower()
         # If we don’t have a matching user, redirect to signup
         if not User.objects.filter(email__iexact=email).exists():
+            messages.error(request, 'Email has not been registered.')
             raise ImmediateHttpResponse(redirect('users:register'))
 
         # Otherwise, connect the sociallogin to that existing user
