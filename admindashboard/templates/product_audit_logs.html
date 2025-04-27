@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Audit Logs - Veloce Admin{% endblock %}
+{% block title %}Product Audit Logs - Veloce Admin{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -9,19 +9,19 @@
         <ol class="flex items-center space-x-2 text-sm">
             <li><a href="{% url 'products:catalog' %}" class="text-primary-dark hover:underline">Home</a></li>
             <li><span class="text-gray-500 mx-2">/</span></li>
-            <li><a href="{% url 'admindashboard:admin_transaction_list' %}" class="text-primary-dark hover:underline">Transactions</a></li>
+            <li><a href="{% url 'admindashboard:admin_page' %}" class="text-primary-dark hover:underline">Products</a></li>
             <li><span class="text-gray-500 mx-2">/</span></li>
-            <li class="font-medium">Transaction Audit Logs</li>
+            <li class="font-medium">Product Audit Logs</li>
         </ol>
     </div>
     
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Transaction Audit Logs</h1>
-        <a href="{% url 'admindashboard:admin_transaction_list' %}" class="inline-flex items-center text-primary-dark hover:underline">
+        <h1 class="text-3xl font-bold">Product Audit Logs</h1>
+        <a href="{% url 'admindashboard:admin_page' %}" class="inline-flex items-center text-primary-dark hover:underline">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Transactions
+            Back to Products
         </a>
     </div>
     
@@ -130,9 +130,6 @@
                         Action
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaction
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Details
                     </th>
                 </tr>
@@ -148,29 +145,17 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <span class="px-3 py-1 rounded-full text-xs font-medium
-                            {% if log.action == 'view' %}
-                                bg-blue-100 text-blue-800
-                            {% elif log.action == 'status_change' %}
+                            {% if log.action == 'add' %}
                                 bg-green-100 text-green-800
-                            {% elif log.action == 'cancel' %}
+                            {% elif log.action == 'edit' %}
+                                bg-blue-100 text-blue-800
+                            {% elif log.action == 'delete' %}
                                 bg-red-100 text-red-800
-                            {% elif log.action == 'unauthorized' or log.action == 'suspicious' %}
-                                bg-yellow-100 text-yellow-800
                             {% else %}
                                 bg-gray-100 text-gray-800
                             {% endif %}">
                             {{ log.get_action_display }}
                         </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {% if log.transaction %}
-                        <a href="{% url 'admindashboard:admin_transaction_detail' log.transaction.transaction_id %}" 
-                           class="text-primary hover:underline">
-                            {{ log.transaction.transaction_id }}
-                        </a>
-                        {% else %}
-                        <span class="text-gray-400">—</span>
-                        {% endif %}
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-500">
                         {{ log.details|truncatechars:100 }}
@@ -178,8 +163,8 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                        No audit logs found.
+                    <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                        No product audit logs found.
                     </td>
                 </tr>
                 {% endfor %}

@@ -11,3 +11,4 @@ django-allauth
 captcha
 oauth2_provider
 cryptography
+django-widget-tweaks

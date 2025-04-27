@@ -1,47 +1,162 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block meta %}
 <title>Tambah Produk - Veloce</title>
 <style>
-    .form-container {
-        @apply bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto my-8;
+    /* Notification styles */
+    #notificationContainer {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 24rem;
     }
-    .input-field {
-        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970];
+    .notification {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        transform: translateX(2.5rem);
+        transition: all 0.3s ease;
+        opacity: 0;
+        max-width: 24rem;
     }
-    .form-label {
-        @apply block text-gray-700 font-medium mb-2;
+    .notification.show {
+        transform: translateX(0);
+        opacity: 1;
     }
-    .btn-primary {
-        @apply bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm;
+    .notification-success {
+        background-color: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        color: #15803d;
     }
-    .btn-success {
-        @apply bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm;
+    .notification-error {
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+        color: #b91c1c;
     }
-    .btn-danger {
-        @apply bg-red-500 hover:bg-red-600 text-white;
+    .notification-icon {
+        margin-right: 0.75rem;
+        flex-shrink: 0;
     }
-    .form-section {
-        @apply mb-6;
+    .notification-content {
+        flex-grow: 1;
     }
-    .form-group {
-        @apply mb-4;
+    .notification-close {
+        margin-left: 1rem;
+        flex-shrink: 0;
+        color: #9ca3af;
+        cursor: pointer;
     }
-    .message-success {
-        @apply bg-green-100 border border-green-300 text-green-700 p-3 rounded-md mb-4;
+    .notification-close:hover {
+        color: #6b7280;
     }
-    .message-error {
-        @apply bg-red-100 border border-red-300 text-red-700 p-3 rounded-md mb-4;
+    
+    /* Modal Popup styles */
+    .modal-popup {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        visibility: hidden;
+    }
+    .modal-popup.show {
+        visibility: visible;
+    }
+    .modal-popup-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .modal-popup.show .modal-popup-backdrop {
+        opacity: 1;
+    }
+    .modal-popup-content {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        max-width: 28rem;
+        width: 100%;
+        margin: 0 1rem;
+        z-index: 10;
+        transform: scale(0.95);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .modal-popup.show .modal-popup-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .modal-popup-icon {
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 4rem;
+        width: 4rem;
+        border-radius: 9999px;
+        margin-bottom: 1rem;
+    }
+    .modal-popup-success .modal-popup-icon {
+        background-color: #ecfdf5;
+        color: #059669;
+    }
+    .modal-popup-error .modal-popup-icon {
+        background-color: #fef2f2;
+        color: #dc2626;
+    }
+    .modal-popup-title {
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .modal-popup-text {
+        text-align: center;
+        color: #4b5563;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .modal-popup-btn {
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        text-align: center;
+    }
+    .modal-popup-success-btn {
+        background-color: #059669;
+        color: white;
+    }
+    .modal-popup-success-btn:hover {
+        background-color: #047857;
+    }
+    .modal-popup-error-btn {
+        background-color: #dc2626;
+        color: white;
+    }
+    .modal-popup-error-btn:hover {
+        background-color: #b91c1c;
     }
 </style>
 {% endblock meta %}
 
 {% block content %}
 <div class="bg-[#f7f9ee] min-h-screen pb-6">
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
     <div class="container mx-auto px-4 py-6">
-        <!-- Header Section -->
-        <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+        <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
             <h1 class="text-3xl font-bold text-gray-800">Tambah Produk</h1>
             <a href="{% url 'admindashboard:admin_page' %}" class="bg-white hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm border border-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -50,80 +165,46 @@
                 Kembali ke Dashboard
             </a>
         </div>
-
-        <!-- Form Section -->
-        <div class="form-container">
+        <div class="bg-white rounded-lg shadow-md p-8 max-w-2xl mx-auto my-10">
             <div id="message" class="hidden"></div>
-            
-            <form method="POST" enctype="multipart/form-data" id="addProductForm">
+            <form method="POST" enctype="multipart/form-data" id="addProductForm" autocomplete="off">
                 {% csrf_token %}
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-group">
-                        <label class="form-label">Brand</label>
-                        {{ form.brand }}
-                        <style>
-                            #id_brand {
-                                @apply input-field;
-                            }
-                        </style>
+                    <div class="mb-5">
+                        <label class="block text-gray-700 font-semibold mb-1">Brand</label>
+                        {{ form.brand|add_class:'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]' }}
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Nama Produk</label>
-                        {{ form.name }}
-                        <style>
-                            #id_name {
-                                @apply input-field;
-                            }
-                        </style>
+                    <div class="mb-5">
+                        <label class="block text-gray-700 font-semibold mb-1">Nama Produk</label>
+                        {{ form.name|add_class:'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]' }}
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Product ID</label>
-                        {{ form.product_id }}
-                        <style>
-                            #id_product_id {
-                                @apply input-field;
-                            }
-                        </style>
+                    <div class="mb-5 md:col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-1">Product ID</label>
+                        {{ form.product_id|add_class:'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]' }}
                         <p class="text-xs text-gray-500 mt-1">Format: 6 digit, tanda hubung (-), 3 digit. Contoh: 921733-104</p>
+                        <span id="productIdError" class="text-xs text-red-500 mt-1 hidden"></span>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Harga</label>
-                        {{ form.price }}
-                        <style>
-                            #id_price {
-                                @apply input-field;
-                            }
-                        </style>
+                    <div class="mb-5">
+                        <label class="block text-gray-700 font-semibold mb-1">Harga</label>
+                        {{ form.price|add_class:'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]' }}
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <select name="gender" id="id_gender" class="input-field">
+                    <div class="mb-5">
+                        <label class="block text-gray-700 font-semibold mb-1">Gender</label>
+                        <select name="gender" id="id_gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]">
                             <option value="men">Men</option>
                             <option value="women">Women</option>
                             <option value="unisex">Unisex</option>
                         </select>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">URL Gambar</label>
-                        {{ form.image_url }}
-                        <style>
-                            #id_image_url {
-                                @apply input-field;
-                            }
-                        </style>
+                    <div class="mb-5 md:col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-1">URL Gambar</label>
+                        {{ form.image_url|add_class:'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8e970]' }}
                     </div>
                 </div>
-
-                <div class="form-section mt-8">
+                <div class="mb-8 mt-8">
                     <div class="flex justify-between items-center mb-4">
-                        <label class="form-label mb-0">Ukuran dan Stok</label>
-                        <button type="button" onclick="addSizeRow()" class="btn-success text-sm flex items-center">
+                        <label class="block text-gray-700 font-semibold mb-0">Ukuran dan Stok</label>
+                        <button type="button" onclick="addSizeRow()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center justify-center transition-colors shadow-sm font-bold text-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                             </svg>
@@ -133,23 +214,21 @@
                     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <table class="w-full border-collapse mb-2">
                             <thead>
-                                <tr class="bg-gray-100 text-left">
-                                    <th class="p-2 border border-gray-200 rounded-tl-md">Ukuran</th>
+                                <tr class="bg-gray-100 text-left font-semibold">
+                                    <th class="p-2 border border-gray-200 rounded-tl-md">Ukuran <span class="text-xs font-normal">(16-60)</span></th>
                                     <th class="p-2 border border-gray-200">Stok</th>
                                     <th class="p-2 border border-gray-200 rounded-tr-md text-center" style="width: 100px;">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="sizesTableBody">
-                                <!-- Size rows will be added here by JavaScript -->
-                            </tbody>
+                            <tbody id="sizesTableBody"></tbody>
                         </table>
                         <input type="hidden" name="sizes_data" id="sizes_data">
-                        <p class="text-sm text-gray-500 mt-2">Tambahkan beberapa ukuran beserta jumlah stok yang tersedia</p>
+                        <span id="sizesError" class="text-xs text-red-500 mt-1 hidden"></span>
+                        <p class="text-sm text-gray-500 mt-2">Ukuran harus integer 16-60. Tambahkan beberapa ukuran beserta jumlah stok yang tersedia.</p>
                     </div>
                 </div>
-
                 <div class="mt-8 flex justify-end">
-                    <button type="submit" class="btn-primary w-full md:w-auto">
+                    <button type="submit" class="bg-[#e0f3b0] hover:bg-[#d4ef94] text-gray-800 py-2 px-6 rounded-md flex items-center justify-center transition-colors shadow-sm font-bold w-full md:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
@@ -160,122 +239,192 @@
         </div>
     </div>
 </div>
-
 <script>
+    // Notification system
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notificationContainer');
+        if (!container) {
+            // Create container if it doesn't exist
+            const newContainer = document.createElement('div');
+            newContainer.id = 'notificationContainer';
+            document.body.appendChild(newContainer);
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        // Icon based on type
+        let icon = '';
+        if (type === 'success') {
+            icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        } else if (type === 'error') {
+            icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        } else {
+            icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        }
+        
+        notification.innerHTML = `
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <p class="font-medium">${message}</p>
+            </div>
+            <div class="notification-close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+        `;
+        
+        // Add to container
+        document.getElementById('notificationContainer').appendChild(notification);
+        
+        // Show notification with animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+    }
+
     function addSizeRow(size = '', stock = 0) {
         const tbody = document.getElementById('sizesTableBody');
-        const rowCount = tbody.rows.length;
         const row = tbody.insertRow();
-        
         // Size input
         const sizeCell = row.insertCell(0);
         const sizeInput = document.createElement('input');
         sizeInput.type = 'number';
-        sizeInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md size-input';
+        sizeInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md size-input focus:outline-none focus:ring-2 focus:ring-[#c8e970]';
         sizeInput.value = size;
-        sizeInput.min = '1';
-        sizeInput.placeholder = 'Contoh: 42';
+        sizeInput.min = '16';
+        sizeInput.max = '60';
+        sizeInput.placeholder = '16-60';
+        sizeInput.required = true;
         sizeCell.appendChild(sizeInput);
-        
         // Stock input
         const stockCell = row.insertCell(1);
         const stockInput = document.createElement('input');
         stockInput.type = 'number';
-        stockInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md stock-input';
+        stockInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md stock-input focus:outline-none focus:ring-2 focus:ring-[#c8e970]';
         stockInput.value = stock;
         stockInput.min = '0';
-        stockInput.placeholder = 'Jumlah stok';
+        stockInput.placeholder = 'Stok';
+        stockInput.required = true;
         stockCell.appendChild(stockInput);
-        
         // Delete button
         const actionCell = row.insertCell(2);
         actionCell.className = 'text-center';
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-danger px-3 py-1.5 rounded text-sm flex items-center mx-auto';
-        
-        // Add icon to delete button
+        deleteBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center mx-auto font-bold';
         deleteBtn.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Hapus
-        `;
-        
+            </svg>Hapus`;
         deleteBtn.onclick = function() { row.remove(); };
         actionCell.appendChild(deleteBtn);
     }
-
-    // Add at least one size row on load
     document.addEventListener('DOMContentLoaded', function() {
-        addSizeRow();
+        // Create notification container
+        if (!document.getElementById('notificationContainer')) {
+            const container = document.createElement('div');
+            container.id = 'notificationContainer';
+            document.body.appendChild(container);
+        }
         
-        // Tambahkan validasi untuk product ID
-        const productIdInput = document.getElementById('id_product_id');
-        productIdInput.addEventListener('input', function() {
+        addSizeRow();
+        document.getElementById('id_product_id').addEventListener('input', function() {
             validateProductId(this);
         });
     });
-    
-    // Fungsi untuk validasi product ID
     function validateProductId(input) {
-        const productIdRegex = /^\d{6}-\d{3}$/;  // Format: 6 digit, tanda hubung, 3 digit
+        const productIdRegex = /^\d{6}-\d{3}$/;
         const isValid = productIdRegex.test(input.value);
-        
+        const errorSpan = document.getElementById('productIdError');
         if (isValid || input.value === '') {
+            errorSpan.classList.add('hidden');
+            errorSpan.textContent = '';
             input.classList.remove('border-red-500');
-            input.classList.add('border-gray-300');
-            input.parentElement.querySelector('.text-red-500')?.remove();
         } else {
-            input.classList.remove('border-gray-300');
+            errorSpan.classList.remove('hidden');
+            errorSpan.textContent = 'Format ID tidak valid. Gunakan format: 6 digit, tanda hubung (-), 3 digit';
             input.classList.add('border-red-500');
-            
-            // Hanya tambahkan pesan error jika belum ada
-            if (!input.parentElement.querySelector('.text-red-500')) {
-                const errorMsg = document.createElement('p');
-                errorMsg.className = 'text-xs text-red-500 mt-1';
-                errorMsg.textContent = 'Format ID tidak valid. Gunakan format: 6 digit, tanda hubung (-), 3 digit';
-                input.parentElement.appendChild(errorMsg);
-            }
         }
-        
         return isValid;
     }
-
+    function validateSizes() {
+        const sizeInputs = document.querySelectorAll('.size-input');
+        const stockInputs = document.querySelectorAll('.stock-input');
+        let valid = true;
+        let errorMsg = '';
+        if (sizeInputs.length === 0) {
+            errorMsg = 'Minimal satu ukuran harus diisi.';
+            valid = false;
+        }
+        for (let i = 0; i < sizeInputs.length; i++) {
+            const size = parseInt(sizeInputs[i].value);
+            const stock = parseInt(stockInputs[i].value);
+            if (isNaN(size) || size < 16 || size > 60) {
+                errorMsg = 'Ukuran harus berupa angka antara 16 sampai 60.';
+                valid = false;
+                break;
+            }
+            if (isNaN(stock) || stock < 0) {
+                errorMsg = 'Stok harus angka minimal 0.';
+                valid = false;
+                break;
+            }
+        }
+        const errorSpan = document.getElementById('sizesError');
+        if (!valid) {
+            errorSpan.classList.remove('hidden');
+            errorSpan.textContent = errorMsg;
+        } else {
+            errorSpan.classList.add('hidden');
+            errorSpan.textContent = '';
+        }
+        return valid;
+    }
     document.getElementById("addProductForm").addEventListener("submit", function(event) {
         event.preventDefault();
-        
-        // Validasi Product ID
         const productIdInput = document.getElementById('id_product_id');
         const isProductIdValid = validateProductId(productIdInput);
-        
+        const isSizesValid = validateSizes();
         if (!isProductIdValid) {
-            // Scroll ke elemen dengan error
             productIdInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             productIdInput.focus();
             return;
         }
-        
-        // Collect size and stock data
+        if (!isSizesValid) {
+            document.getElementById('sizesTableBody').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
         const sizesData = [];
         const sizeInputs = document.querySelectorAll('.size-input');
         const stockInputs = document.querySelectorAll('.stock-input');
-        
         for (let i = 0; i < sizeInputs.length; i++) {
             const size = parseInt(sizeInputs[i].value);
             const stock = parseInt(stockInputs[i].value || 0);
-            
             if (size) {
                 sizesData.push({ size: size, stock: stock });
             }
         }
-        
-        // Add size data to hidden input
         document.getElementById('sizes_data').value = JSON.stringify(sizesData);
-        
-        // Create FormData
         let formData = new FormData(this);
-
         fetch("{% url 'admindashboard:add_product' %}", {
             method: "POST",
             body: formData,
@@ -283,48 +432,125 @@
                 "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            let message = document.getElementById("message");
-            message.classList.remove('hidden');
-            
-            if (data.error) {
-                message.textContent = data.error;
-                message.className = "message-error";
+        .then(async response => {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
             } else {
-                message.innerHTML = `
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Produk berhasil ditambahkan!
-                    </div>
-                `;
-                message.className = "message-success";
-                document.getElementById("addProductForm").reset();
-                
-                // Clear size table and add a new empty row
-                document.getElementById('sizesTableBody').innerHTML = '';
-                addSizeRow();
-                
-                // Scroll to top to see the message
-                window.scrollTo(0, 0);
+                // Jika bukan JSON, tampilkan error umum
+                throw new Error("Terjadi kesalahan pada server. Silakan cek kembali data atau hubungi admin.");
+            }
+        })
+        .then(data => {
+            if (data.error) {
+                // Jika error validasi user (bukan error server), tampilkan di UI
+                if (typeof data.error === 'object' || (typeof data.error === 'string' && data.error.length < 200)) {
+                    let errorMsg = '';
+                    if (typeof data.error === 'string') {
+                        errorMsg = data.error;
+                    } else if (typeof data.error === 'object') {
+                        errorMsg = Object.values(data.error).flat().join('. ');
+                    } else {
+                        errorMsg = JSON.stringify(data.error);
+                    }
+                    showModalPopup(errorMsg, 'error', 'Error Adding Product');
+                } else {
+                    // Jika error server (pesan panjang/HTML), log ke console saja
+                    console.error('Backend error:', data.error);
+                    showModalPopup('Terjadi kesalahan pada server.', 'error', 'Server Error');
+                }
+            } else {
+                // Success - show modal and redirect to admin page
+                showModalPopup('Product added successfully!', 'success', 'Success', function() {
+                    window.location.href = "{% url 'admindashboard:admin_page' %}";
+                });
             }
         })
         .catch(error => {
-            console.error("Error:", error);
-            let message = document.getElementById("message");
-            message.classList.remove('hidden');
-            message.innerHTML = `
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Terjadi kesalahan saat menambahkan produk.
-                </div>
-            `;
-            message.className = "message-error";
+            // Log error detail ke console
+            console.error('Fetch error:', error);
+            
+            // Tampilkan error di UI dengan modal popup
+            let errorText = error && error.message ? error.message : error;
+            // Jika error mengandung tag HTML, tampilkan pesan umum saja
+            if (typeof errorText === 'string' && errorText.trim().startsWith('<')) {
+                errorText = "Terjadi kesalahan pada server. Silakan cek kembali data atau hubungi admin.";
+            }
+            showModalPopup(errorText, 'error', 'Error');
         });
     });
+
+    // Modal Popup Functions
+    function showModalPopup(message, type = 'success', title = '', callback = null) {
+        const modal = document.getElementById('modalPopup');
+        const modalIcon = document.getElementById('modalPopupIcon');
+        const modalTitle = document.getElementById('modalPopupTitle');
+        const modalText = document.getElementById('modalPopupText');
+        const modalButton = document.getElementById('modalPopupButton');
+        
+        // Set icon based on type
+        let iconSvg = '';
+        if (type === 'success') {
+            iconSvg = '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            modal.classList.add('modal-popup-success');
+            modal.classList.remove('modal-popup-error');
+            modalButton.classList.add('modal-popup-success-btn');
+            modalButton.classList.remove('modal-popup-error-btn');
+        } else {
+            iconSvg = '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            modal.classList.add('modal-popup-error');
+            modal.classList.remove('modal-popup-success');
+            modalButton.classList.add('modal-popup-error-btn');
+            modalButton.classList.remove('modal-popup-success-btn');
+        }
+        
+        // Set content
+        modalIcon.innerHTML = iconSvg;
+        modalTitle.textContent = title || (type === 'success' ? 'Success!' : 'Error!');
+        modalText.textContent = message;
+        
+        // Store callback if provided
+        if (callback) {
+            modal._callback = callback;
+        } else {
+            modal._callback = null;
+        }
+        
+        // Show modal with animation
+        modal.classList.add('show');
+    }
+
+    function closeModalPopup() {
+        const modal = document.getElementById('modalPopup');
+        modal.classList.remove('show');
+        
+        // Execute callback if exists
+        if (modal._callback) {
+            setTimeout(() => {
+                modal._callback();
+            }, 300);
+        }
+    }
 </script>
+
+<!-- Modal Popup for Success/Error Messages -->
+<div id="modalPopup" class="modal-popup">
+    <div class="modal-popup-backdrop" onclick="closeModalPopup()"></div>
+    <div class="modal-popup-content p-6">
+        <div id="modalPopupIcon" class="modal-popup-icon">
+            <!-- Icon will be inserted here -->
+        </div>
+        <div id="modalPopupTitle" class="modal-popup-title">
+            <!-- Title will be inserted here -->
+        </div>
+        <div id="modalPopupText" class="modal-popup-text">
+            <!-- Message will be inserted here -->
+        </div>
+        <div class="flex justify-center">
+            <button onclick="closeModalPopup()" id="modalPopupButton" class="modal-popup-btn">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock content %}
