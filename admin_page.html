@@ -1,0 +1,366 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" 
+    type="image/png" 
+    href="https://ik.imagekit.io/veloce37/veloce_rounded.png?updatedAt=1745744364729" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/logo.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Login - Veloce</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .main-content {
+            flex: 1; /* This pushes the footer to the bottom */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#7cb342',
+                        'primary-light': '#ddf1a0',
+                        'primary-dark': '#c5e17a',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+</head>
+<body>
+    <!-- Include Navbar -->
+    
+<!-- Navbar -->
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
+                <a href="/" class="flex items-center">
+                    <img class="h-12 w-auto" src="https://ik.imagekit.io/veloce37/logo.png?updatedAt=1744319391444" alt="Veloce Logo">
+                </a>
+            </div>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-center">
+                <!-- Navigation Links -->
+                <div class="flex space-x-8">
+                    <a href="/" class="text-gray-900 hover:text-primary px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="/products/catalog/" class="text-gray-900 hover:text-primary px-3 py-2 text-sm font-medium">Catalog</a>
+                    
+                    
+                    
+                    
+                </div>
+            </div>
+
+            <!-- User Menu & Mobile Menu Button -->
+            <div class="flex items-center">
+                <!-- User Menu -->
+                <div class="hidden sm:flex sm:items-center sm:ml-6">
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="/users/login/" class="text-gray-700 hover:text-primary text-sm font-medium">Log in</a>
+                        <a href="/users/register/" class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-green-800 rounded">Sign up</a>
+                    </div>
+                    
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="sm:hidden ml-4">
+                    <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="sm:hidden">
+        <div class="mobile-menu hidden px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+            <!-- Navigation Links -->
+            <a href="/" class="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary rounded-md">Home</a>
+            <a href="/products/catalog/" class="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary rounded-md">Catalog</a>
+            
+            
+            
+            
+
+            <!-- User Section -->
+            <div class="border-t border-gray-200 pt-4 pb-3">
+                
+                <div class="mt-3 space-y-1">
+                    <a href="/users/login/" class="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary rounded-md">Log in</a>
+                    <a href="/users/register/" class="block px-3 py-2 text-base font-medium text-white bg-primary hover:bg-green-800 rounded-md">Sign up</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+    
+    // Desktop profile dropdown toggle
+    const profileDropdownButton = document.getElementById('profile-dropdown-button');
+    const profileDropdownMenu = document.getElementById('profile-dropdown-menu');
+    
+    if (profileDropdownButton && profileDropdownMenu) {
+        profileDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdownMenu.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!profileDropdownMenu.contains(event.target)) {
+                profileDropdownMenu.classList.add('hidden');
+            }
+        });
+    }
+});
+</script> 
+
+
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        
+        <!-- Page Content -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            
+<div class="max-w-md mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">LOGIN</h1>
+
+    <!-- Misal, area untuk pesan error atau notifikasi yang berasal dari server -->
+    <div id="notifications">
+        
+    </div>
+
+    <form method="post" class="flex flex-col space-y-4">
+        <input type="hidden" name="csrfmiddlewaretoken" value="Qg5lvRLE5ppRx6EeANgp3W1mU80RLoYgrgcIbW8Wb5g5VqyOf8emkiFBOtcbaZXO">
+        <input type="text" name="username" class="px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Username" required>
+        
+        <div class="relative">
+            <input type="password" name="password" id="password" class="px-4 py-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Password" required>
+            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none">
+                <i class="fas fa-eye" id="eye-icon"></i>
+            </button>
+        </div>
+        
+        <button type="submit" class="bg-primary-light hover:bg-primary-dark text-black font-bold py-3 px-4 rounded-full mt-4 transition duration-300">
+            LOGIN
+        </button>
+    </form>
+
+    <div class="media-options mt-6 text-center">
+        <a href="/accounts/google/login/?next=%2Fadmindashboard%2F" class="field google">
+            <i class="fa-brands fa-google googleicon"></i>
+            <span>Login with Google</span>
+        </a>
+    </div>
+    
+    <div class="mt-6 text-center">
+        Don't have an account? <a href="/users/register/" class="font-bold text-black">Register here</a>
+    </div>
+</div>
+
+        </div>
+    </div>
+    
+    <!-- Include Footer -->
+    
+<!-- Footer -->
+<footer class="bg-black text-white py-8">
+    <div class="max-w-6xl mx-auto px-6">
+        <!-- Desktop Footer -->
+        <div class="hidden md:grid md:grid-cols-3 gap-8">
+            <!-- Logo and about -->
+            <div class="text-center md:text-left">
+                <div class="flex justify-center md:justify-start mb-4">
+                    <img src="https://ik.imagekit.io/veloce37/veloce_putih.png?updatedAt=1745736635627" alt="Veloce Logo White" class="h-14">
+                </div>
+                <p class="text-sm text-gray-300 mb-4">
+                    Veloce offers premium footwear with exceptional comfort and style. 
+                    Find your perfect pair from our curated collection.
+                </p>
+            </div>
+            
+            <!-- Quick links -->
+            <div class="text-center">
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="/" class="text-gray-300 hover:text-white transition">Home</a></li>
+                    <li><a href="/products/catalog/" class="text-gray-300 hover:text-white transition">Catalog</a></li>
+                    
+                    
+                </ul>
+            </div>
+            
+            <!-- Social and contact -->
+            <div class="text-center md:text-right">
+                <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-center justify-center md:justify-end">
+                        <i class="fas fa-envelope mr-2"></i>
+                        <a href="mailto:info@veloce.com" class="text-gray-300 hover:text-white transition">info@veloce.com</a>
+                    </li>
+                    <li class="flex items-center justify-center md:justify-end">
+                        <i class="fas fa-phone mr-2"></i>
+                        <a href="tel:+6281234567890" class="text-gray-300 hover:text-white transition">+62 812 3456 7890</a>
+                    </li>
+                </ul>
+                <div class="mt-4 flex justify-center md:justify-end space-x-4">
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Footer -->
+        <div class="md:hidden">
+            <!-- Logo -->
+            <div class="flex justify-center mb-6">
+                <img src="https://ik.imagekit.io/veloce37/veloce_putih.png?updatedAt=1745736635627" alt="Veloce Logo White" class="h-12">
+            </div>
+
+            <!-- Quick Links - Simplified -->
+            <div class="flex justify-center mb-6">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <a href="/" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="/products/catalog/" class="text-gray-300 hover:text-white transition">Catalog</a>
+                    
+                    
+                </div>
+            </div>
+
+            <!-- Contact - Simplified -->
+            <div class="text-center mb-6">
+                <div class="flex justify-center space-x-4 mb-4">
+                    <a href="mailto:info@veloce.com" class="text-gray-300 hover:text-white transition">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="tel:+6281234567890" class="text-gray-300 hover:text-white transition">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                </div>
+                <div class="flex justify-center space-x-6">
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright - Both Mobile and Desktop -->
+        <div class="mt-6 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
+            <p>© 2025 Veloce. All rights reserved.</p>
+        </div>
+    </div>
+</footer> 
+    
+    <!-- JavaScript -->
+    
+<!-- Include DOMPurify dari CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js" integrity="sha512-4JSUgkCIyPsyTpARVhaDY1rdO36Suw95M/tt3J4Q1lQkBzLnSB6x6et6Xg1Lr7dkFU32LTsoOQvGlSvyHkM28w==" crossorigin="anonymous"></script>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+
+    // Contoh penggunaan DOMPurify untuk mensanitasi konten error/notifikasi
+    (function() {
+        // Ambil elemen notifikasi (jika ada)
+        const notificationsEl = document.getElementById('notifications');
+        if (notificationsEl) {
+            // Ambil konten HTML yang tidak disanitasi
+            const rawHTML = notificationsEl.innerHTML;
+            // Sanitasi dengan DOMPurify
+            const cleanHTML = DOMPurify.sanitize(rawHTML);
+            // Gantikan dengan konten yang sudah bersih
+            notificationsEl.innerHTML = cleanHTML;
+        }
+    })();
+</script>
+
+    
+    <!-- Navbar JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown functionality
+            const userButton = document.getElementById('userDropdownButton');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            if (userButton) {
+                userButton.addEventListener('click', function() {
+                    userDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

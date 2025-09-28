@@ -193,8 +193,8 @@ AUTHENTICATION_BACKENDS = (
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '856796458299-etqs7r1ro5d028qmvmmijthovv4n30gp.apps.googleusercontent.com',
-            'secret': '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',
+            'client_id': os.getenv("GOOGLE_CLIENT_ID"),
+            'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
             'key': ''
         }
     }
