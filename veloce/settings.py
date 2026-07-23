@@ -26,13 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("PODS_SECRET_KEY")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 # ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'kelompok-37-veloce-project.pkpl.cs.ui.ac.id']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', 'kelompok-37-veloce-project.pkpl.cs.ui.ac.id', 'veloce-project-one.vercel.app']
 
 # Application definition
 
@@ -182,8 +182,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = '/login/'
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
-CORS_ALLOWED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://veloce-project-one.vercel.app",]
+CORS_ALLOWED_ORIGINS = ["http://localhost","http://127.0.0.1", 'http://0.0.0.0', "http://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://kelompok-37-veloce-project.pkpl.cs.ui.ac.id", "https://veloce-project-one.vercel.app",]
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
