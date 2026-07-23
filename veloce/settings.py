@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qsl
 
 load_dotenv()
 
@@ -114,30 +114,30 @@ WSGI_APPLICATION = "veloce.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
-# if os.getenv("DJANGO_ENV") == "production":
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.postgresql',
-#             'NAME': os.getenv("DATABASE_NAME"),
-#             'USER': os.getenv("DATABASE_USER"),
-#             'PASSWORD': os.getenv("DATABASE_PASSWORD"),
-#             'HOST': os.getenv("DATABASE_HOST"),  
-#             'PORT': os.getenv("DATABASE_PORT"),
-#     }
-# }
-# else:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("DB_NAME", 'kelompok_37_db'),
-        'USER': os.getenv("DB_USERNAME", 'kelompok_37'),
-        'PASSWORD': os.getenv("DB_PASSWORD", 'BJ1cDtajACXFiiM9'),
-        'HOST': os.getenv("DB_HOST", "152.118.29.233"),
-        'PORT': os.getenv("DB_PORT", '5432')
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
+        'PORT': 5432,
+        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
     }
 }
+# else:
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv("DB_NAME", 'kelompok_37_db'),
+#         'USER': os.getenv("DB_USERNAME", 'kelompok_37'),
+#         'PASSWORD': os.getenv("DB_PASSWORD", 'BJ1cDtajACXFiiM9'),
+#         'HOST': os.getenv("DB_HOST", "152.118.29.233"),
+#         'PORT': os.getenv("DB_PORT", '5432')
+#     }
+# }
 
 
 # Password validation
